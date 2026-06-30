@@ -455,6 +455,21 @@ function openBillModal(id, defaultDate) {
         <textarea id="bNotes" placeholder="Informacoes adicionais..." maxlength="300">${b ? escHtml(b.notes||'') : ''}</textarea>
       </div>
 
+      ${!b ? `
+      <div class="form-group" style="background:var(--primary-lighter);border:1.5px solid var(--primary-light);border-radius:10px;padding:14px 16px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;font-size:14px;font-weight:600;color:var(--text);letter-spacing:0">
+          <input type="checkbox" id="bRecurring" onchange="toggleRecurring()" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer">
+          Esta conta se repete todo mês?
+        </label>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:4px;margin-left:28px">Vai criar uma entrada para cada mês automaticamente.</p>
+        <div id="recurringFields" style="display:none;margin-top:14px;margin-left:28px">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Mes de encerramento *</label>
+          <input type="month" id="bEndMonth" style="padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);background:var(--card);outline:none;font-family:inherit;transition:border-color .15s"
+            onkeydown="return false">
+          <p style="font-size:11px;color:var(--text-muted);margin-top:6px">Serao criadas contas mensais ate este mes (inclusive).</p>
+        </div>
+      </div>` : ''}
+
       ${b ? `<div class="form-group">
         <label>Status</label>
         <select id="bStatus">
@@ -474,6 +489,21 @@ function openBillModal(id, defaultDate) {
   setTimeout(() => document.getElementById('bName')?.focus(), 80);
 }
 
+function toggleRecurring() {
+  const checked = document.getElementById('bRecurring')?.checked;
+  const fields  = document.getElementById('recurringFields');
+  if (fields) fields.style.display = checked ? 'block' : 'none';
+  if (checked) {
+    // pre-fill end month with 12 months ahead
+    const inp = document.getElementById('bEndMonth');
+    if (inp && !inp.value) {
+      const d = new Date(); d.setMonth(d.getMonth() + 11);
+      inp.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+    document.getElementById('bEndMonth')?.focus();
+  }
+}
+
 function saveBill(id) {
   const name    = document.getElementById('bName').value.trim();
   const amount  = parseFloat(document.getElementById('bAmount').value);
@@ -481,9 +511,9 @@ function saveBill(id) {
   const category= document.getElementById('bCategory').value;
   const notes   = document.getElementById('bNotes').value.trim();
 
-  if (!name)       { toast('Informe a descricao da conta.', 'warning'); return; }
+  if (!name)                  { toast('Informe a descricao da conta.', 'warning'); return; }
   if (!amount || amount <= 0) { toast('Informe um valor valido.', 'warning'); return; }
-  if (!dueDate)    { toast('Informe a data de vencimento.', 'warning'); return; }
+  if (!dueDate)               { toast('Informe a data de vencimento.', 'warning'); return; }
 
   if (id) {
     const data = { name, amount, dueDate, category, notes };
@@ -496,8 +526,32 @@ function saveBill(id) {
     DB.updateBill(id, data);
     toast('Conta atualizada!', 'success');
   } else {
-    DB.addBill({ name, amount, dueDate, category, notes });
-    toast('Conta adicionada!', 'success');
+    const recurring = document.getElementById('bRecurring')?.checked;
+    if (recurring) {
+      const endMonth = document.getElementById('bEndMonth')?.value;
+      if (!endMonth) { toast('Informe o mes de encerramento.', 'warning'); return; }
+
+      const [sy, sm, sd] = dueDate.split('-').map(Number);
+      const [ey, em]     = endMonth.split('-').map(Number);
+      const endDate      = new Date(ey, em - 1, 1);
+      const startDate    = new Date(sy, sm - 1, 1);
+
+      if (endDate < startDate) { toast('O mes de encerramento deve ser igual ou posterior ao vencimento.', 'warning'); return; }
+
+      let count = 0;
+      let y = sy, m = sm;
+      while (new Date(y, m-1, 1) <= endDate) {
+        const day = Math.min(sd, new Date(y, m, 0).getDate()); // ajusta dias curtos (ex: fev)
+        const due = `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        DB.addBill({ name, amount, dueDate: due, category, notes, recurring: true });
+        count++;
+        m++; if (m > 12) { m = 1; y++; }
+      }
+      toast(`${count} conta(s) recorrente(s) criada(s)!`, 'success');
+    } else {
+      DB.addBill({ name, amount, dueDate, category, notes, recurring: false });
+      toast('Conta adicionada!', 'success');
+    }
   }
 
   document.getElementById('billModalOverlay').remove();

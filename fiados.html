@@ -8,120 +8,279 @@
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="stylesheet" href="css/style.css">
 <style>
-.fiados-empty{text-align:center;padding:60px 20px;color:var(--text-muted)}
-.fiados-empty svg{margin:0 auto 16px;display:block;opacity:.3}
-.search-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.search-bar input{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--card);color:var(--text);outline:none}
-.search-bar input:focus{border-color:var(--primary)}
-.filter-tabs{display:flex;gap:4px;background:var(--bg);border-radius:var(--radius-sm);padding:4px}
-.filter-tab{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;border:none;background:none;font-family:inherit;transition:all .15s}
-.filter-tab.active{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
-.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
-.modal-box{background:var(--card);border-radius:var(--radius-lg);padding:28px;max-width:460px;width:100%;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto}
-.modal-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:20px}
-.form-row{margin-bottom:14px}
-.form-row label{display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:5px}
-.form-row input,.form-row textarea,.form-row select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--card);color:var(--text);outline:none;transition:border .15s}
-.form-row input:focus,.form-row textarea:focus,.form-row select:focus{border-color:var(--primary)}
-.form-row textarea{resize:vertical;min-height:64px}
-.btn-row{display:flex;gap:10px;margin-top:20px}
-.btn-primary{flex:1;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
-.btn-primary:hover{background:var(--primary-dark)}
-.btn-secondary{flex:1;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
-.btn-danger-outline{padding:8px 14px;background:transparent;color:var(--danger);border:1px solid var(--danger);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+/* ---- layout ---- */
+.fiados-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.fiados-empty{text-align:center;padding:64px 20px;color:var(--text-muted)}
+.fiados-empty svg{margin:0 auto 16px;display:block;opacity:.25}
+.fiados-empty h3{font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text)}
+.fiados-empty p{font-size:13px}
+
+/* ---- filter bar ---- */
+.filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.filter-bar input[type=search]{flex:1;min-width:180px;padding:9px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--card);color:var(--text);outline:none}
+.filter-bar input:focus{border-color:var(--primary)}
+.ftabs{display:flex;gap:4px;background:var(--bg);border-radius:var(--radius-sm);padding:4px}
+.ftab{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;border:none;background:none;font-family:inherit;transition:all .15s}
+.ftab.active{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
+
+/* ---- card ---- */
+.fiado-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.fc-head{padding:16px 18px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border-light)}
+.fc-avatar{width:46px;height:46px;border-radius:50%;background:var(--primary-light);color:var(--primary);font-weight:700;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-transform:uppercase}
+.fc-info{flex:1;min-width:0}
+.fc-name{font-weight:700;font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-phone{font-size:12px;color:var(--text-muted);margin-top:2px}
+.fc-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;margin-top:4px;display:inline-block}
+.fc-badge-open{background:var(--danger-bg);color:var(--danger)}
+.fc-badge-ok{background:var(--success-bg);color:var(--success)}
+.fc-total{text-align:right;flex-shrink:0}
+.fc-total-value{font-size:18px;font-weight:800;color:var(--danger)}
+.fc-total-label{font-size:11px;color:var(--text-muted)}
+
+/* ---- transactions ---- */
+.fc-body{padding:14px 18px 16px;flex:1;display:flex;flex-direction:column;gap:12px}
+.fc-notes{font-size:12px;color:var(--text-muted);font-style:italic;background:var(--bg);padding:8px 10px;border-radius:8px}
+.tx-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.tx-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg);font-size:13px}
+.tx-item.paid{opacity:.55}
+.tx-desc{flex:1;font-weight:500;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-date{font-size:11px;color:var(--text-muted);white-space:nowrap;flex-shrink:0}
+.tx-val{font-weight:700;color:var(--danger);white-space:nowrap;flex-shrink:0}
+.tx-item.paid .tx-val{color:var(--success);text-decoration:line-through}
+.tx-btns{display:flex;gap:3px;flex-shrink:0}
+.tx-btn{width:26px;height:26px;border:none;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;transition:filter .15s}
+.tx-btn:hover{filter:brightness(.9)}
+.tx-btn-pay{background:#dcfce7;color:#16a34a}
+.tx-btn-undo{background:#fef3c7;color:#d97706}
+.tx-btn-del{background:#fee2e2;color:#dc2626}
+.tx-empty{text-align:center;padding:14px 0;font-size:13px;color:var(--text-muted)}
+.fc-subtotal{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--primary-lighter);border-radius:8px;font-size:13px}
+.fc-subtotal span:first-child{font-weight:600;color:var(--text-secondary)}
+.fc-subtotal span:last-child{font-weight:800;color:var(--danger)}
+
+/* ---- card footer ---- */
+.fc-foot{display:flex;gap:8px;padding:12px 18px 14px;border-top:1px solid var(--border-light)}
+.fc-btn{flex:1;padding:8px 0;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:background .15s}
+.fc-btn-primary{background:var(--primary);color:#fff}
+.fc-btn-primary:hover{background:var(--primary-dark)}
+.fc-btn-edit{background:var(--bg);color:var(--text);border:1px solid var(--border)!important}
+.fc-btn-del{background:var(--danger-bg);color:var(--danger)}
+
+/* ---- modals ---- */
+.mo{position:fixed;inset:0;z-index:1100;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+.mo-box{background:var(--card);border-radius:var(--radius-lg);width:100%;box-shadow:0 24px 60px rgba(0,0,0,.22);max-height:92vh;overflow-y:auto;display:flex;flex-direction:column}
+.mo-head{padding:22px 24px 0;display:flex;align-items:center;justify-content:space-between}
+.mo-title{font-size:17px;font-weight:700;color:var(--text)}
+.mo-close{width:32px;height:32px;border:none;background:var(--bg);border-radius:8px;cursor:pointer;font-size:18px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;line-height:1}
+.mo-body{padding:20px 24px}
+.mo-foot{padding:0 24px 22px;display:flex;gap:10px}
+.frow{margin-bottom:14px}
+.frow:last-child{margin-bottom:0}
+.frow label{display:block;font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.frow input,.frow textarea,.frow select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--card);color:var(--text);outline:none;transition:border .15s}
+.frow input:focus,.frow textarea:focus,.frow select:focus{border-color:var(--primary)}
+.frow textarea{resize:vertical;min-height:70px}
+.frow-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:12px}
+.btn-full{width:100%;padding:11px;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+.btn-cancel{background:var(--bg);color:var(--text);border:1px solid var(--border)!important}
+.btn-save{background:var(--primary);color:#fff}
+.btn-save:hover{background:var(--primary-dark)}
+.btn-red{background:var(--danger);color:#fff}
+.opt-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-secondary);user-select:none;margin-bottom:10px}
+.opt-toggle input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--primary)}
+.opt-section{background:var(--bg);border-radius:10px;padding:14px;border:1px dashed var(--border)}
+
+/* ---- topbar ---- */
 .topbar-actions{display:flex;gap:8px}
-.btn-sm{padding:7px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:background .15s}
-.btn-sm-primary{background:var(--primary);color:#fff}
-.btn-sm-primary:hover{background:var(--primary-dark)}
-.fiado-tx-item-empty{font-size:13px;color:var(--text-muted);text-align:center;padding:10px 0}
-.total-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--primary-lighter);border-radius:8px;margin-top:8px}
-.total-row span:first-child{font-size:13px;font-weight:600;color:var(--text-secondary)}
-.total-row span:last-child{font-size:15px;font-weight:700;color:var(--danger)}
+.btn-new{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+.btn-new:hover{background:var(--primary-dark)}
+.btn-new svg{flex-shrink:0}
 </style>
 </head>
 <body>
 <div id="navContainer"></div>
 <main class="main">
+
+  <!-- Header -->
   <div class="page-header">
     <div>
       <h1 class="page-title">Fiados</h1>
-      <p class="page-subtitle">Clientes que estão com dívidas em aberto</p>
+      <p class="page-subtitle">Clientes que estão devendo no bar</p>
     </div>
     <div class="topbar-actions">
-      <button class="btn-sm btn-sm-primary" onclick="openAddPerson()">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <button class="btn-new" onclick="openNewPerson()">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Novo Devedor
       </button>
     </div>
   </div>
 
   <!-- Stats -->
-  <div class="stats-grid" id="fiadosStats" style="margin-bottom:20px"></div>
+  <div class="stats-grid" id="statsRow" style="margin-bottom:20px"></div>
 
-  <!-- Search + filter -->
-  <div class="card" style="padding:14px 18px;margin-bottom:16px">
-    <div class="search-bar">
-      <input type="search" id="fiadoSearch" placeholder="Buscar por nome..." oninput="renderFiados()">
-      <div class="filter-tabs">
-        <button class="filter-tab active" data-filter="abertos" onclick="setFilter('abertos',this)">Em aberto</button>
-        <button class="filter-tab" data-filter="todos" onclick="setFilter('todos',this)">Todos</button>
-        <button class="filter-tab" data-filter="quitados" onclick="setFilter('quitados',this)">Quitados</button>
+  <!-- Filter bar -->
+  <div class="card" style="padding:13px 18px;margin-bottom:16px">
+    <div class="filter-bar">
+      <input type="search" id="searchInput" placeholder="Buscar por nome..." oninput="renderList()">
+      <div class="ftabs">
+        <button class="ftab active" onclick="setFilter('abertos',this)">Em aberto</button>
+        <button class="ftab" onclick="setFilter('todos',this)">Todos</button>
+        <button class="ftab" onclick="setFilter('quitados',this)">Quitados</button>
       </div>
     </div>
   </div>
 
-  <div id="fiadosContainer"></div>
+  <!-- Cards -->
+  <div id="listContainer"></div>
+
 </main>
 
-<!-- Modal: add/edit person -->
-<div id="personModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closePersonModal()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <h2 class="modal-title" id="personModalTitle">Novo Devedor</h2>
-    <div class="form-row"><label>Nome *</label><input id="pName" type="text" placeholder="Nome completo" maxlength="100"></div>
-    <div class="form-row"><label>Telefone</label><input id="pPhone" type="tel" placeholder="(00) 00000-0000" maxlength="20"></div>
-    <div class="form-row"><label>Observações</label><textarea id="pNotes" placeholder="Anotações..." maxlength="200"></textarea></div>
-    <div class="btn-row">
-      <button class="btn-secondary" onclick="closePersonModal()">Cancelar</button>
-      <button class="btn-primary" onclick="savePerson()">Salvar</button>
+<!-- ===== MODAL: Novo / Editar Devedor ===== -->
+<div id="personModal" class="mo" style="display:none" onclick="if(event.target===this)closePersonModal()">
+  <div class="mo-box" style="max-width:500px" onclick="event.stopPropagation()">
+    <div class="mo-head">
+      <h2 class="mo-title" id="personModalTitle">Novo Devedor</h2>
+      <button class="mo-close" onclick="closePersonModal()">×</button>
+    </div>
+    <div class="mo-body">
+
+      <p class="section-label">Dados do cliente</p>
+      <div class="frow">
+        <label>Nome completo *</label>
+        <input id="pName" type="text" placeholder="Ex: João da Silva" maxlength="100" onkeydown="if(event.key==='Enter')document.getElementById('pPhone').focus()">
+      </div>
+      <div class="frow-2">
+        <div class="frow" style="margin-bottom:0">
+          <label>Telefone / WhatsApp</label>
+          <input id="pPhone" type="tel" placeholder="(00) 00000-0000" maxlength="20">
+        </div>
+        <div class="frow" style="margin-bottom:0">
+          <label>CPF / RG</label>
+          <input id="pDoc" type="text" placeholder="Opcional" maxlength="20">
+        </div>
+      </div>
+      <div class="frow" style="margin-top:14px">
+        <label>Observações</label>
+        <textarea id="pNotes" placeholder="Ex: vizinha da padaria, paga toda sexta..." maxlength="300"></textarea>
+      </div>
+
+      <!-- Primeiro fiado opcional -->
+      <hr class="divider">
+      <label class="opt-toggle">
+        <input type="checkbox" id="addFirstTx" onchange="toggleFirstTx()">
+        Já adicionar o primeiro fiado agora
+      </label>
+      <div id="firstTxSection" style="display:none">
+        <div class="opt-section">
+          <div class="frow">
+            <label>O que foi fiado *</label>
+            <input id="ftDesc" type="text" placeholder="Ex: 2 cervejas + 1 cigarro" maxlength="200">
+          </div>
+          <div class="frow-2">
+            <div class="frow" style="margin-bottom:0">
+              <label>Valor (R$) *</label>
+              <input id="ftAmount" type="number" min="0.01" step="0.01" placeholder="0,00">
+            </div>
+            <div class="frow" style="margin-bottom:0">
+              <label>Data</label>
+              <input id="ftDate" type="date">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mo-foot">
+      <button class="btn-full btn-cancel" onclick="closePersonModal()">Cancelar</button>
+      <button class="btn-full btn-save" onclick="savePerson()">Salvar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: add transaction -->
-<div id="txModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeTxModal()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <h2 class="modal-title">Adicionar Fiado</h2>
-    <div class="form-row"><label>Descrição *</label><input id="txDesc" type="text" placeholder="Ex: 2 cervejas + 1 refrigerante" maxlength="200"></div>
-    <div class="form-row"><label>Valor (R$) *</label><input id="txAmount" type="number" min="0.01" step="0.01" placeholder="0,00"></div>
-    <div class="form-row"><label>Data</label><input id="txDate" type="date"></div>
-    <div class="btn-row">
-      <button class="btn-secondary" onclick="closeTxModal()">Cancelar</button>
-      <button class="btn-primary" onclick="saveTx()">Adicionar</button>
+<!-- ===== MODAL: Adicionar Fiado ===== -->
+<div id="txModal" class="mo" style="display:none" onclick="if(event.target===this)closeTxModal()">
+  <div class="mo-box" style="max-width:420px" onclick="event.stopPropagation()">
+    <div class="mo-head">
+      <div>
+        <h2 class="mo-title">Adicionar Fiado</h2>
+        <p id="txModalSub" style="font-size:13px;color:var(--text-muted);margin-top:3px"></p>
+      </div>
+      <button class="mo-close" onclick="closeTxModal()">×</button>
+    </div>
+    <div class="mo-body">
+      <div class="frow">
+        <label>O que foi fiado *</label>
+        <input id="txDesc" type="text" placeholder="Ex: 3 cervejas + 1 salgado" maxlength="200"
+          onkeydown="if(event.key==='Enter')document.getElementById('txAmount').focus()">
+      </div>
+      <div class="frow-2">
+        <div class="frow" style="margin-bottom:0">
+          <label>Valor (R$) *</label>
+          <input id="txAmount" type="number" min="0.01" step="0.01" placeholder="0,00"
+            onkeydown="if(event.key==='Enter')saveTx()">
+        </div>
+        <div class="frow" style="margin-bottom:0">
+          <label>Data</label>
+          <input id="txDate" type="date">
+        </div>
+      </div>
+    </div>
+    <div class="mo-foot">
+      <button class="btn-full btn-cancel" onclick="closeTxModal()">Cancelar</button>
+      <button class="btn-full btn-save" onclick="saveTx()">Adicionar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: confirm delete person -->
-<div id="deletePersonModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal-box" style="max-width:360px" onclick="event.stopPropagation()">
-    <h2 class="modal-title">Apagar devedor?</h2>
-    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px">Isso vai apagar <strong id="deletePersonName"></strong> e todas as dívidas. Essa ação não pode ser desfeita.</p>
-    <div class="btn-row">
-      <button class="btn-secondary" onclick="document.getElementById('deletePersonModal').style.display='none'">Cancelar</button>
-      <button class="btn-primary" style="background:var(--danger)" onclick="doDeletePerson()">Apagar</button>
+<!-- ===== MODAL: Quitar tudo ===== -->
+<div id="quitarModal" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="mo-box" style="max-width:380px" onclick="event.stopPropagation()">
+    <div class="mo-head">
+      <h2 class="mo-title">Quitar tudo?</h2>
+      <button class="mo-close" onclick="document.getElementById('quitarModal').style.display='none'">×</button>
+    </div>
+    <div class="mo-body">
+      <p style="font-size:14px;color:var(--text-secondary)">Isso vai marcar <strong id="quitarName"></strong> como <strong>todos os fiados pagos</strong>. Confirma?</p>
+      <p id="quitarValor" style="font-size:22px;font-weight:800;color:var(--success);margin-top:12px;text-align:center"></p>
+    </div>
+    <div class="mo-foot">
+      <button class="btn-full btn-cancel" onclick="document.getElementById('quitarModal').style.display='none'">Cancelar</button>
+      <button class="btn-full btn-save" style="background:var(--success)" onclick="doQuitarTudo()">Sim, quitar tudo</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: confirm delete tx -->
-<div id="deleteTxModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal-box" style="max-width:360px" onclick="event.stopPropagation()">
-    <h2 class="modal-title">Apagar este fiado?</h2>
-    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px">O lançamento será removido permanentemente.</p>
-    <div class="btn-row">
-      <button class="btn-secondary" onclick="document.getElementById('deleteTxModal').style.display='none'">Cancelar</button>
-      <button class="btn-primary" style="background:var(--danger)" onclick="doDeleteTx()">Apagar</button>
+<!-- ===== MODAL: Apagar devedor ===== -->
+<div id="deletePersonModal" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="mo-box" style="max-width:360px" onclick="event.stopPropagation()">
+    <div class="mo-head">
+      <h2 class="mo-title">Apagar devedor?</h2>
+      <button class="mo-close" onclick="document.getElementById('deletePersonModal').style.display='none'">×</button>
+    </div>
+    <div class="mo-body">
+      <p style="font-size:14px;color:var(--text-secondary)">Isso vai apagar <strong id="delPersonName"></strong> e <strong>todos os fiados</strong> registrados. Não tem como desfazer.</p>
+    </div>
+    <div class="mo-foot">
+      <button class="btn-full btn-cancel" onclick="document.getElementById('deletePersonModal').style.display='none'">Cancelar</button>
+      <button class="btn-full btn-red" onclick="doDeletePerson()">Apagar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Apagar lançamento ===== -->
+<div id="deleteTxModal" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="mo-box" style="max-width:360px" onclick="event.stopPropagation()">
+    <div class="mo-head">
+      <h2 class="mo-title">Apagar lançamento?</h2>
+      <button class="mo-close" onclick="document.getElementById('deleteTxModal').style.display='none'">×</button>
+    </div>
+    <div class="mo-body">
+      <p style="font-size:14px;color:var(--text-secondary)">O lançamento será removido permanentemente.</p>
+    </div>
+    <div class="mo-foot">
+      <button class="btn-full btn-cancel" onclick="document.getElementById('deleteTxModal').style.display='none'">Cancelar</button>
+      <button class="btn-full btn-red" onclick="doDeleteTx()">Apagar</button>
     </div>
   </div>
 </div>
@@ -131,251 +290,326 @@
 <script src="js/nav.js"></script>
 <script src="js/reauth.js"></script>
 <script>
-  (function(){ const t=localStorage.getItem('crm_theme')||'white'; document.documentElement.setAttribute('data-theme',t); })();
+(function(){ const t=localStorage.getItem('crm_theme')||'white'; document.documentElement.setAttribute('data-theme',t); })();
 
-  let _currentFilter = 'abertos';
-  let _editingPersonId = null;
-  let _addTxPersonId = null;
-  let _deletePersonId = null;
-  let _deleteTxInfo = null; // {fiadoId, txId}
+/* ---- state ---- */
+let _filter       = 'abertos';
+let _editingId    = null;   // person being edited
+let _txPersonId   = null;   // person to add tx to
+let _delPersonId  = null;
+let _delTxInfo    = null;   // {fiadoId, txId}
+let _quitarId     = null;
 
-  document.addEventListener('DOMContentLoaded', () => {
-    REAUTH.require('Fiados');
-    renderNav('fiados');
-    // Set today's date as default for tx
-    document.getElementById('txDate').value = new Date().toISOString().slice(0,10);
-    renderStats();
-    renderFiados();
-  });
+/* ---- init ---- */
+document.addEventListener('DOMContentLoaded', () => {
+  REAUTH.require('Fiados');
+  renderNav('fiados');
+  document.getElementById('txDate').value  = today();
+  document.getElementById('ftDate').value  = today();
+  renderStats();
+  renderList();
+});
 
-  function setFilter(f, btn) {
-    _currentFilter = f;
-    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderFiados();
-  }
+function today() { return new Date().toISOString().slice(0,10); }
+function fmtDate(d) { if(!d) return ''; const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; }
+function fmtMoney(v) { return 'R$ ' + parseFloat(v||0).toFixed(2).replace('.',','); }
+function debtOf(f)  { return (f.transactions||[]).filter(t=>!t.paid).reduce((s,t)=>s+parseFloat(t.amount||0),0); }
 
-  function getDebtTotal(fiado) {
-    return (fiado.transactions || []).filter(t => !t.paid).reduce((s, t) => s + (parseFloat(t.amount)||0), 0);
-  }
+/* ---- filter ---- */
+function setFilter(f, btn) {
+  _filter = f;
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
 
-  function renderStats() {
-    const all = DB.getFiados();
-    const totalPeople = all.length;
-    const openPeople = all.filter(f => getDebtTotal(f) > 0).length;
-    const totalDebt = all.reduce((s, f) => s + getDebtTotal(f), 0);
-    const totalTx = all.reduce((s, f) => s + (f.transactions||[]).filter(t=>!t.paid).length, 0);
+/* ---- stats ---- */
+function renderStats() {
+  const all = DB.getFiados();
+  const totalDebt  = all.reduce((s,f) => s+debtOf(f), 0);
+  const openCount  = all.filter(f => debtOf(f) > 0).length;
+  const totalTx    = all.reduce((s,f) => s+(f.transactions||[]).filter(t=>!t.paid).length, 0);
+  const paidTotal  = all.reduce((s,f) => s+(f.transactions||[]).filter(t=>t.paid).reduce((a,t)=>a+parseFloat(t.amount||0),0), 0);
 
-    document.getElementById('fiadosStats').innerHTML = `
-      <div class="stat-card">
-        <div class="stat-label">Total em aberto</div>
-        <div class="stat-value text-danger">R$ ${totalDebt.toFixed(2).replace('.',',')}</div>
-        <div class="stat-sub">${totalTx} lançamento${totalTx!==1?'s':''} pendente${totalTx!==1?'s':''}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Pessoas devendo</div>
-        <div class="stat-value">${openPeople}</div>
-        <div class="stat-sub">de ${totalPeople} cadastrado${totalPeople!==1?'s':''}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Total de devedores</div>
-        <div class="stat-value">${totalPeople}</div>
-        <div class="stat-sub">cadastrados no sistema</div>
-      </div>
-    `;
-  }
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total em aberto</div>
+      <div class="stat-value" style="color:var(--danger)">${fmtMoney(totalDebt)}</div>
+      <div class="stat-sub">${totalTx} lançamento${totalTx!==1?'s':''} pendente${totalTx!==1?'s':''}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pessoas devendo</div>
+      <div class="stat-value">${openCount}</div>
+      <div class="stat-sub">de ${all.length} cadastrado${all.length!==1?'s':''}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total já recebido</div>
+      <div class="stat-value" style="color:var(--success)">${fmtMoney(paidTotal)}</div>
+      <div class="stat-sub">em fiados quitados</div>
+    </div>
+  `;
+}
 
-  function renderFiados() {
-    const q = (document.getElementById('fiadoSearch').value || '').toLowerCase();
-    let list = DB.getFiados().filter(f => f.name.toLowerCase().includes(q));
+/* ---- list ---- */
+function renderList() {
+  const q = (document.getElementById('searchInput').value||'').toLowerCase().trim();
+  let list = DB.getFiados().filter(f => f.name.toLowerCase().includes(q));
+  if (_filter==='abertos')  list = list.filter(f => debtOf(f)>0);
+  if (_filter==='quitados') list = list.filter(f => debtOf(f)===0);
+  list.sort((a,b) => debtOf(b)-debtOf(a));
 
-    if (_currentFilter === 'abertos')  list = list.filter(f => getDebtTotal(f) > 0);
-    if (_currentFilter === 'quitados') list = list.filter(f => getDebtTotal(f) === 0);
-
-    // Sort: most debt first
-    list.sort((a, b) => getDebtTotal(b) - getDebtTotal(a));
-
-    const el = document.getElementById('fiadosContainer');
-    if (!list.length) {
-      el.innerHTML = `
-        <div class="fiados-empty">
-          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="56" height="56">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-          <p style="font-size:15px;font-weight:600;margin-bottom:4px">Nenhum devedor encontrado</p>
-          <p style="font-size:13px">Tente mudar o filtro ou adicionar um novo devedor.</p>
-        </div>`;
-      return;
-    }
-
-    el.innerHTML = `<div class="fiados-grid">${list.map(f => renderFiadoCard(f)).join('')}</div>`;
-  }
-
-  function renderFiadoCard(f) {
-    const debt = getDebtTotal(f);
-    const txPending = (f.transactions||[]).filter(t => !t.paid);
-    const txPaid   = (f.transactions||[]).filter(t =>  t.paid);
-    const allTx    = [...txPending, ...txPaid];
-
-    const txHtml = allTx.length ? allTx.map(t => `
-      <li class="fiado-tx-item ${t.paid ? 'paid' : ''}">
-        <span class="fiado-tx-desc">${escHtml(t.description)}</span>
-        <span class="fiado-tx-date">${formatDate(t.date)}</span>
-        <span class="fiado-tx-amount">R$ ${parseFloat(t.amount).toFixed(2).replace('.',',')}</span>
-        <span class="fiado-tx-actions">
-          ${!t.paid ? `<button class="fiado-tx-btn fiado-tx-btn-pay" title="Marcar como pago" onclick="payTx(${f.id},${t.id})">✓</button>` : `<button class="fiado-tx-btn fiado-tx-btn-undo" title="Desfazer pagamento" onclick="unpayTx(${f.id},${t.id})">↩</button>`}
-          <button class="fiado-tx-btn fiado-tx-btn-del" title="Apagar" onclick="confirmDeleteTx(${f.id},${t.id})">×</button>
-        </span>
-      </li>`).join('') : `<p class="fiado-tx-item-empty">Nenhum lançamento.</p>`;
-
-    return `
-      <div class="fiado-card">
-        <div class="fiado-card-header">
-          <div class="fiado-avatar">${escHtml(f.name[0].toUpperCase())}</div>
-          <div style="flex:1;min-width:0">
-            <div class="fiado-card-name">${escHtml(f.name)}</div>
-            ${f.phone ? `<div class="fiado-card-phone">📞 ${escHtml(f.phone)}</div>` : ''}
-          </div>
-          <div class="fiado-card-debt">
-            <div class="fiado-debt-value">R$ ${debt.toFixed(2).replace('.',',')}</div>
-            <div class="fiado-debt-label">em aberto</div>
-          </div>
-        </div>
-        <div class="fiado-card-body">
-          ${f.notes ? `<p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;font-style:italic">${escHtml(f.notes)}</p>` : ''}
-          <ul class="fiado-tx-list">${txHtml}</ul>
-          ${allTx.length > 0 ? `<div class="total-row"><span>Total em aberto</span><span>R$ ${debt.toFixed(2).replace('.',',')}</span></div>` : ''}
-          <div class="fiado-card-actions" style="margin-top:14px">
-            <button class="btn-sm btn-sm-primary" style="flex:1" onclick="openAddTx(${f.id})">+ Adicionar fiado</button>
-            <button class="btn-sm" style="background:var(--bg);color:var(--text);border:1px solid var(--border)" onclick="openEditPerson(${f.id})">Editar</button>
-            <button class="btn-sm" style="background:var(--danger-bg);color:var(--danger);border:none" onclick="confirmDeletePerson(${f.id})">Apagar</button>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function formatDate(d) {
-    if (!d) return '';
-    const [y,m,day] = d.split('-');
-    return `${day}/${m}/${y}`;
-  }
-
-  // ---- Person CRUD ----
-  function openAddPerson() {
-    _editingPersonId = null;
-    document.getElementById('personModalTitle').textContent = 'Novo Devedor';
-    document.getElementById('pName').value = '';
-    document.getElementById('pPhone').value = '';
-    document.getElementById('pNotes').value = '';
-    document.getElementById('personModal').style.display = 'flex';
-    setTimeout(() => document.getElementById('pName').focus(), 80);
-  }
-
-  function openEditPerson(id) {
-    const f = DB.getFiados().find(x => x.id === id);
-    if (!f) return;
-    _editingPersonId = id;
-    document.getElementById('personModalTitle').textContent = 'Editar Devedor';
-    document.getElementById('pName').value = f.name;
-    document.getElementById('pPhone').value = f.phone || '';
-    document.getElementById('pNotes').value = f.notes || '';
-    document.getElementById('personModal').style.display = 'flex';
-    setTimeout(() => document.getElementById('pName').focus(), 80);
-  }
-
-  function closePersonModal() {
-    document.getElementById('personModal').style.display = 'none';
-  }
-
-  function savePerson() {
-    const name = document.getElementById('pName').value.trim();
-    if (!name) { alert('Informe o nome.'); return; }
-    const data = {
-      name,
-      phone: document.getElementById('pPhone').value.trim(),
-      notes: document.getElementById('pNotes').value.trim()
+  const el = document.getElementById('listContainer');
+  if (!list.length) {
+    const msgs = {
+      abertos:  ['Ninguém devendo agora!','Nenhum cliente com fiado em aberto.'],
+      quitados: ['Nenhum fiado quitado ainda.','Quando alguém pagar aparece aqui.'],
+      todos:    ['Nenhum devedor cadastrado.','Clique em "Novo Devedor" para começar.'],
     };
-    if (_editingPersonId) {
-      DB.updateFiado(_editingPersonId, data);
-    } else {
-      DB.addFiado(data);
+    const [h,p] = msgs[_filter] || msgs.todos;
+    el.innerHTML = `
+      <div class="fiados-empty">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="60" height="60">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <h3>${h}</h3><p>${p}</p>
+      </div>`;
+    return;
+  }
+  el.innerHTML = `<div class="fiados-grid">${list.map(cardHtml).join('')}</div>`;
+}
+
+function cardHtml(f) {
+  const debt   = debtOf(f);
+  const pending = (f.transactions||[]).filter(t=>!t.paid);
+  const paid    = (f.transactions||[]).filter(t=> t.paid);
+  const allTx   = [...pending, ...paid];
+  const isOk    = debt===0;
+
+  const txRows = allTx.length
+    ? allTx.map(t=>`
+        <li class="tx-item${t.paid?' paid':''}">
+          <span class="tx-desc" title="${escHtml(t.description)}">${escHtml(t.description)}</span>
+          <span class="tx-date">${fmtDate(t.date)}</span>
+          <span class="tx-val">${fmtMoney(t.amount)}</span>
+          <span class="tx-btns">
+            ${!t.paid
+              ? `<button class="tx-btn tx-btn-pay" title="Marcar como pago" onclick="payTx(${f.id},${t.id})">✓</button>`
+              : `<button class="tx-btn tx-btn-undo" title="Desfazer pagamento" onclick="unpayTx(${f.id},${t.id})">↩</button>`}
+            <button class="tx-btn tx-btn-del" title="Apagar lançamento" onclick="confirmDeleteTx(${f.id},${t.id})">×</button>
+          </span>
+        </li>`).join('')
+    : `<p class="tx-empty">Nenhum lançamento ainda.</p>`;
+
+  return `
+    <div class="fiado-card">
+      <div class="fc-head">
+        <div class="fc-avatar">${escHtml((f.name||'?')[0])}</div>
+        <div class="fc-info">
+          <div class="fc-name">${escHtml(f.name)}</div>
+          ${f.phone ? `<div class="fc-phone">📞 ${escHtml(f.phone)}</div>` : ''}
+          ${f.doc   ? `<div class="fc-phone">🪪 ${escHtml(f.doc)}</div>` : ''}
+          <span class="fc-badge ${isOk?'fc-badge-ok':'fc-badge-open'}">${isOk?'✓ Quitado':'● Em aberto'}</span>
+        </div>
+        <div class="fc-total">
+          <div class="fc-total-value">${fmtMoney(debt)}</div>
+          <div class="fc-total-label">em aberto</div>
+        </div>
+      </div>
+
+      <div class="fc-body">
+        ${f.notes ? `<p class="fc-notes">${escHtml(f.notes)}</p>` : ''}
+        <ul class="tx-list">${txRows}</ul>
+        ${allTx.length>0 ? `<div class="fc-subtotal"><span>Total em aberto</span><span>${fmtMoney(debt)}</span></div>` : ''}
+      </div>
+
+      <div class="fc-foot">
+        <button class="fc-btn fc-btn-primary" onclick="openAddTx(${f.id})">+ Fiado</button>
+        ${!isOk ? `<button class="fc-btn" style="background:var(--success-bg);color:var(--success);font-weight:600" onclick="openQuitar(${f.id})">Quitar tudo</button>` : ''}
+        <button class="fc-btn fc-btn-edit" onclick="openEditPerson(${f.id})">Editar</button>
+        <button class="fc-btn fc-btn-del" onclick="confirmDeletePerson(${f.id})">Apagar</button>
+      </div>
+    </div>`;
+}
+
+/* ---- pessoa CRUD ---- */
+function openNewPerson() {
+  _editingId = null;
+  document.getElementById('personModalTitle').textContent = 'Novo Devedor';
+  document.getElementById('pName').value   = '';
+  document.getElementById('pPhone').value  = '';
+  document.getElementById('pDoc').value    = '';
+  document.getElementById('pNotes').value  = '';
+  document.getElementById('addFirstTx').checked = false;
+  document.getElementById('firstTxSection').style.display = 'none';
+  document.getElementById('ftDesc').value   = '';
+  document.getElementById('ftAmount').value = '';
+  document.getElementById('ftDate').value   = today();
+  document.getElementById('personModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pName').focus(), 60);
+}
+
+function openEditPerson(id) {
+  const f = DB.getFiados().find(x=>x.id===id);
+  if (!f) return;
+  _editingId = id;
+  document.getElementById('personModalTitle').textContent = 'Editar Devedor';
+  document.getElementById('pName').value   = f.name  || '';
+  document.getElementById('pPhone').value  = f.phone || '';
+  document.getElementById('pDoc').value    = f.doc   || '';
+  document.getElementById('pNotes').value  = f.notes || '';
+  // Hide first-tx section in edit mode
+  document.getElementById('addFirstTx').checked = false;
+  document.getElementById('firstTxSection').style.display = 'none';
+  document.getElementById('addFirstTx').closest('label').style.display = 'none';
+  document.getElementById('personModal').querySelector('.divider').style.display = 'none';
+  document.getElementById('personModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pName').focus(), 60);
+}
+
+function closePersonModal() {
+  document.getElementById('personModal').style.display = 'none';
+  // Restore hidden elements for next open
+  document.getElementById('addFirstTx').closest('label').style.display = '';
+  document.getElementById('personModal').querySelector('.divider').style.display = '';
+}
+
+function toggleFirstTx() {
+  const on = document.getElementById('addFirstTx').checked;
+  document.getElementById('firstTxSection').style.display = on ? 'block' : 'none';
+  if (on) setTimeout(() => document.getElementById('ftDesc').focus(), 60);
+}
+
+function savePerson() {
+  const name = document.getElementById('pName').value.trim();
+  if (!name) { toast('Informe o nome do cliente.','error'); document.getElementById('pName').focus(); return; }
+
+  const data = {
+    name,
+    phone: document.getElementById('pPhone').value.trim(),
+    doc:   document.getElementById('pDoc').value.trim(),
+    notes: document.getElementById('pNotes').value.trim(),
+  };
+
+  if (_editingId) {
+    DB.updateFiado(_editingId, data);
+    toast('Devedor atualizado!','success');
+  } else {
+    const newF = DB.addFiado(data);
+
+    // Adicionar primeiro fiado se marcado
+    if (document.getElementById('addFirstTx').checked) {
+      const desc   = document.getElementById('ftDesc').value.trim();
+      const amount = parseFloat(document.getElementById('ftAmount').value);
+      const date   = document.getElementById('ftDate').value || today();
+      if (desc && amount > 0) {
+        DB.addFiadoTransaction(newF.id, { description: desc, amount, date });
+      }
     }
-    closePersonModal();
-    renderStats();
-    renderFiados();
+    toast('Devedor cadastrado!','success');
   }
 
-  function confirmDeletePerson(id) {
-    const f = DB.getFiados().find(x => x.id === id);
-    if (!f) return;
-    _deletePersonId = id;
-    document.getElementById('deletePersonName').textContent = f.name;
-    document.getElementById('deletePersonModal').style.display = 'flex';
-  }
+  closePersonModal();
+  renderStats();
+  renderList();
+}
 
-  function doDeletePerson() {
-    if (!_deletePersonId) return;
-    DB.deleteFiado(_deletePersonId);
-    _deletePersonId = null;
-    document.getElementById('deletePersonModal').style.display = 'none';
-    renderStats();
-    renderFiados();
-  }
+function confirmDeletePerson(id) {
+  const f = DB.getFiados().find(x=>x.id===id);
+  if (!f) return;
+  _delPersonId = id;
+  document.getElementById('delPersonName').textContent = f.name;
+  document.getElementById('deletePersonModal').style.display = 'flex';
+}
 
-  // ---- Transaction CRUD ----
-  function openAddTx(fiadoId) {
-    _addTxPersonId = fiadoId;
-    document.getElementById('txDesc').value = '';
-    document.getElementById('txAmount').value = '';
-    document.getElementById('txDate').value = new Date().toISOString().slice(0,10);
-    document.getElementById('txModal').style.display = 'flex';
-    setTimeout(() => document.getElementById('txDesc').focus(), 80);
-  }
+function doDeletePerson() {
+  if (!_delPersonId) return;
+  DB.deleteFiado(_delPersonId);
+  _delPersonId = null;
+  document.getElementById('deletePersonModal').style.display = 'none';
+  toast('Devedor apagado.','default');
+  renderStats(); renderList();
+}
 
-  function closeTxModal() {
-    document.getElementById('txModal').style.display = 'none';
-  }
+/* ---- quitar tudo ---- */
+function openQuitar(id) {
+  const f = DB.getFiados().find(x=>x.id===id);
+  if (!f) return;
+  _quitarId = id;
+  document.getElementById('quitarName').textContent = f.name;
+  document.getElementById('quitarValor').textContent = fmtMoney(debtOf(f));
+  document.getElementById('quitarModal').style.display = 'flex';
+}
 
-  function saveTx() {
-    const desc = document.getElementById('txDesc').value.trim();
-    const amount = parseFloat(document.getElementById('txAmount').value);
-    const date = document.getElementById('txDate').value;
-    if (!desc) { alert('Informe a descrição.'); return; }
-    if (!amount || amount <= 0) { alert('Informe um valor válido.'); return; }
-    DB.addFiadoTransaction(_addTxPersonId, { description: desc, amount, date });
-    closeTxModal();
-    renderStats();
-    renderFiados();
+function doQuitarTudo() {
+  if (!_quitarId) return;
+  const arr = DB.getFiados();
+  const f = arr.find(x=>x.id===_quitarId);
+  if (f) {
+    const now = new Date().toISOString();
+    f.transactions.forEach(t => { if (!t.paid) { t.paid=true; t.paidAt=now; } });
+    DB.saveFiados(arr);
   }
+  _quitarId = null;
+  document.getElementById('quitarModal').style.display = 'none';
+  toast('Fiados quitados!','success');
+  renderStats(); renderList();
+}
 
-  function payTx(fiadoId, txId) {
-    DB.markTxPaid(fiadoId, txId);
-    renderStats();
-    renderFiados();
-  }
+/* ---- transação CRUD ---- */
+function openAddTx(fiadoId) {
+  _txPersonId = fiadoId;
+  const f = DB.getFiados().find(x=>x.id===fiadoId);
+  document.getElementById('txModalSub').textContent = f ? `Cliente: ${f.name}` : '';
+  document.getElementById('txDesc').value   = '';
+  document.getElementById('txAmount').value = '';
+  document.getElementById('txDate').value   = today();
+  document.getElementById('txModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('txDesc').focus(), 60);
+}
 
-  function unpayTx(fiadoId, txId) {
-    DB.markTxUnpaid(fiadoId, txId);
-    renderStats();
-    renderFiados();
-  }
+function closeTxModal() {
+  document.getElementById('txModal').style.display = 'none';
+}
 
-  function confirmDeleteTx(fiadoId, txId) {
-    _deleteTxInfo = { fiadoId, txId };
-    document.getElementById('deleteTxModal').style.display = 'flex';
-  }
+function saveTx() {
+  const desc   = document.getElementById('txDesc').value.trim();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const date   = document.getElementById('txDate').value || today();
+  if (!desc)          { toast('Informe o que foi fiado.','error'); document.getElementById('txDesc').focus(); return; }
+  if (!amount||amount<=0){ toast('Informe um valor válido.','error'); document.getElementById('txAmount').focus(); return; }
+  DB.addFiadoTransaction(_txPersonId, { description: desc, amount, date });
+  closeTxModal();
+  toast('Fiado adicionado!','success');
+  renderStats(); renderList();
+}
 
-  function doDeleteTx() {
-    if (!_deleteTxInfo) return;
-    DB.deleteFiadoTx(_deleteTxInfo.fiadoId, _deleteTxInfo.txId);
-    _deleteTxInfo = null;
-    document.getElementById('deleteTxModal').style.display = 'none';
-    renderStats();
-    renderFiados();
-  }
+function payTx(fiadoId, txId) {
+  DB.markTxPaid(fiadoId, txId);
+  toast('Marcado como pago!','success');
+  renderStats(); renderList();
+}
+
+function unpayTx(fiadoId, txId) {
+  DB.markTxUnpaid(fiadoId, txId);
+  toast('Pagamento desfeito.','default');
+  renderStats(); renderList();
+}
+
+function confirmDeleteTx(fiadoId, txId) {
+  _delTxInfo = { fiadoId, txId };
+  document.getElementById('deleteTxModal').style.display = 'flex';
+}
+
+function doDeleteTx() {
+  if (!_delTxInfo) return;
+  DB.deleteFiadoTx(_delTxInfo.fiadoId, _delTxInfo.txId);
+  _delTxInfo = null;
+  document.getElementById('deleteTxModal').style.display = 'none';
+  toast('Lançamento apagado.','default');
+  renderStats(); renderList();
+}
 </script>
 </body>
 </html>

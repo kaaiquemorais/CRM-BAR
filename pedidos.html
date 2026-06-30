@@ -778,39 +778,21 @@ function showWelcome() {
   if (localStorage.getItem('crm_welcome_date') === today) return;
   localStorage.setItem('crm_welcome_date', today);
 
-  // ~15% chance de mostrar mensagem do Kaique, resto mostra versículo
-  const showPride = Math.random() < 0.15;
-
+  const verse = VERSES[Math.floor(Math.random() * VERSES.length)];
   const popup = document.createElement('div');
   popup.id = 'welcomePopup';
-
-  if (showPride) {
-    popup.className = 'welcome-popup pride';
-    popup.innerHTML = `
-      <div class="wp-head">
-        <span class="wp-icon">❤️</span>
-        <div class="wp-content">
-          <div class="wp-text">Ei, irmã! Tenho muito orgulho de você, do seu esforço, da sua força e da sua dedicação. Você é incrível. Vai com tudo hoje! 💛</div>
-          <div class="wp-ref pride-ref">Kaique Morais</div>
-        </div>
-        <button class="wp-close" onclick="document.getElementById('welcomePopup').remove()">×</button>
-      </div>`;
-  } else {
-    const verse = VERSES[Math.floor(Math.random() * VERSES.length)];
-    popup.className = 'welcome-popup';
-    popup.innerHTML = `
-      <div class="wp-head">
-        <span class="wp-icon">📖</span>
-        <div class="wp-content">
-          <div class="wp-text">${verse.text}</div>
-          <div class="wp-ref">${verse.ref}</div>
-        </div>
-        <button class="wp-close" onclick="document.getElementById('welcomePopup').remove()">×</button>
-      </div>`;
-  }
+  popup.className = 'welcome-popup';
+  popup.innerHTML = `
+    <div class="wp-head">
+      <span class="wp-icon">📖</span>
+      <div class="wp-content">
+        <div class="wp-text">${verse.text}</div>
+        <div class="wp-ref">${verse.ref}</div>
+      </div>
+      <button class="wp-close" onclick="document.getElementById('welcomePopup').remove()">×</button>
+    </div>`;
 
   document.body.appendChild(popup);
-  // Auto-fecha após 10 segundos
   setTimeout(() => {
     const el = document.getElementById('welcomePopup');
     if (el) { el.style.transition = 'opacity .4s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 400); }

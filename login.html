@@ -88,31 +88,16 @@ function showVersePopup() {
   el.className = 'verse-popup';
   el.style.cursor = 'pointer';
 
-  const showKaique = Math.random() < 0.12;
-
-  if (showKaique) {
-    el.style.borderColor = '#fed7aa';
-    el.innerHTML = `
-      <button class="vp-close">×</button>
-      <div class="vp-inner">
-        <div class="vp-body">
-          <div class="vp-text">Tenho muito orgulho de você. Não desistir do bar foi, com certeza, o maior presente que você já deu pra gente.</div>
-          <div class="vp-ref" style="color:#d97706">Kaique Morais</div>
-        </div>
+  const v = VERSES[Math.floor(Math.random() * VERSES.length)];
+  el.innerHTML = `
+    <button class="vp-close">×</button>
+    <div class="vp-inner">
+      <div class="vp-body">
+        <div class="vp-text">${v.text}</div>
+        <div class="vp-ref">${v.ref}</div>
       </div>
-      <p style="margin-top:14px;font-size:11px;color:#94a3b8">Clique para continuar</p>`;
-  } else {
-    const v = VERSES[Math.floor(Math.random() * VERSES.length)];
-    el.innerHTML = `
-      <button class="vp-close">×</button>
-      <div class="vp-inner">
-        <div class="vp-body">
-          <div class="vp-text">${v.text}</div>
-          <div class="vp-ref">${v.ref}</div>
-        </div>
-      </div>
-      <p style="margin-top:14px;font-size:11px;color:#94a3b8">Clique para continuar</p>`;
-  }
+    </div>
+    <p style="margin-top:14px;font-size:11px;color:#94a3b8">Clique para continuar</p>`;
 
   document.body.appendChild(el);
   el.addEventListener('click', () => dismissPopupAndGo(el));

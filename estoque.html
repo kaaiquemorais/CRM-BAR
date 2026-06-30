@@ -98,7 +98,6 @@
           <select id="fCategory">
             <option value="">Selecione…</option>
             <option value="Bebidas">🍺 Bebidas</option>
-            <option value="Porções">🍟 Porções</option>
             <option value="Comidas">🍔 Comidas</option>
             <option value="Outros">📦 Outros</option>
           </select>
@@ -221,11 +220,11 @@ DB.init();
 REAUTH.require('Estoque');
 renderNav('estoque');
 
-const CATS = ['Todas', 'Bebidas', 'Porções', 'Comidas', 'Outros'];
+const CATS = ['Todas', 'Bebidas', 'Comidas', 'Outros'];
 let activeFilter = 'Todas';
 
 function getCatClass(c) {
-  const m = { bebidas:'cat-bebidas', porções:'cat-porcoes', comidas:'cat-comidas', outros:'cat-outros' };
+  const m = { bebidas:'cat-bebidas', comidas:'cat-comidas', outros:'cat-outros' };
   return m[(c||'outros').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ç/g,'c').replace(/õ/g,'o')] || 'cat-outros';
 }
 
@@ -380,7 +379,7 @@ window.saveProduct = function() {
 };
 
 function getDefaultEmoji(cat) {
-  const m = { Bebidas: '🍺', Porções: '🍟', Comidas: '🍔', Outros: '📦' };
+  const m = { Bebidas: '🍺', Comidas: '🍔', Outros: '📦' };
   return m[cat] || '📦';
 }
 

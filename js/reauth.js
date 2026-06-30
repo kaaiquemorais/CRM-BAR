@@ -1,18 +1,12 @@
 // Re-authentication overlay — injected into protected pages (dashboard, estoque)
-// Re-asks password every 30 minutes of inactivity
+// Sempre pede senha ao acessar, sem cache ou TTL
 
 const REAUTH = {
-  KEY: 'crm_reauth_time',
-  TTL: 30 * 60 * 1000, // 30 min
-
-  isValid() {
-    const t = parseInt(sessionStorage.getItem(this.KEY) || '0');
-    return Date.now() - t < this.TTL;
-  },
-  grant() { sessionStorage.setItem(this.KEY, Date.now()); },
+  isValid() { return false; },
+  grant() {},
 
   require(pageName) {
-    if (AUTH.require() && this.isValid()) return; // already authed recently
+    if (!AUTH.require()) return;
 
     // Inject overlay
     const overlay = document.createElement('div');

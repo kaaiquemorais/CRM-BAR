@@ -97,6 +97,27 @@
 .btn-new{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
 .btn-new:hover{background:var(--primary-dark)}
 .btn-new svg{flex-shrink:0}
+
+/* ---- tx modal tabs ---- */
+.tx-tab{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border:none;background:none;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tx-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+.tx-tab:hover:not(.active){color:var(--text)}
+
+/* ---- product picker ---- */
+.prod-card{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;transition:border .15s;cursor:default}
+.prod-card.has-qty{border-color:var(--primary);background:var(--primary-lighter)}
+.prod-emoji{font-size:22px;line-height:1;flex-shrink:0}
+.prod-info{flex:1;min-width:0}
+.prod-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prod-price{font-size:12px;color:var(--text-muted);margin-top:1px}
+.qty-ctrl{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.qty-btn{width:26px;height:26px;border:1.5px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:all .15s}
+.qty-btn:hover{border-color:var(--primary);color:var(--primary)}
+.qty-val{width:28px;text-align:center;font-size:14px;font-weight:700;color:var(--text)}
+
+/* ---- cat filter pills ---- */
+.cat-pill{padding:4px 10px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--text-secondary);transition:all .15s;white-space:nowrap}
+.cat-pill.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 </style>
 </head>
 <body>
@@ -200,7 +221,7 @@
 
 <!-- ===== MODAL: Adicionar Fiado ===== -->
 <div id="txModal" class="mo" style="display:none" onclick="if(event.target===this)closeTxModal()">
-  <div class="mo-box" style="max-width:420px" onclick="event.stopPropagation()">
+  <div class="mo-box" style="max-width:520px" onclick="event.stopPropagation()">
     <div class="mo-head">
       <div>
         <h2 class="mo-title">Adicionar Fiado</h2>
@@ -208,17 +229,51 @@
       </div>
       <button class="mo-close" onclick="closeTxModal()">×</button>
     </div>
-    <div class="mo-body">
+
+    <!-- Abas -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 24px">
+      <button class="tx-tab active" id="tabEstoque" onclick="switchTxTab('estoque')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+        Selecionar do estoque
+      </button>
+      <button class="tx-tab" id="tabManual" onclick="switchTxTab('manual')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Digitar manualmente
+      </button>
+    </div>
+
+    <!-- Aba: estoque -->
+    <div id="tabEstoquePanel" class="mo-body" style="padding-bottom:8px">
+      <!-- busca + categorias -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <input id="prodSearch" type="search" placeholder="Buscar produto..." oninput="renderProdPicker()"
+          style="flex:1;min-width:140px;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--card);color:var(--text);outline:none">
+        <div id="catFilter" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+      </div>
+      <!-- grade de produtos -->
+      <div id="prodGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:260px;overflow-y:auto;padding-right:2px"></div>
+      <!-- resumo selecionados -->
+      <div id="selSummary" style="display:none;margin-top:12px;background:var(--primary-lighter);border-radius:10px;padding:12px 14px">
+        <p class="section-label" style="margin-bottom:8px">Itens selecionados</p>
+        <div id="selList" style="display:flex;flex-direction:column;gap:4px;font-size:13px"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <span style="font-size:13px;font-weight:600;color:var(--text-secondary)">Total</span>
+          <span id="selTotal" style="font-size:17px;font-weight:800;color:var(--primary)">R$ 0,00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aba: manual -->
+    <div id="tabManualPanel" class="mo-body" style="display:none">
       <div class="frow">
         <label>O que foi fiado *</label>
-        <input id="txDesc" type="text" placeholder="Ex: 3 cervejas + 1 salgado" maxlength="200"
-          onkeydown="if(event.key==='Enter')document.getElementById('txAmount').focus()">
+        <textarea id="txDesc" placeholder="Ex: 3 cervejas geladas, 1 cigarro, 2 salgados..." maxlength="300" rows="3"
+          style="resize:none"></textarea>
       </div>
       <div class="frow-2">
         <div class="frow" style="margin-bottom:0">
-          <label>Valor (R$) *</label>
-          <input id="txAmount" type="number" min="0.01" step="0.01" placeholder="0,00"
-            onkeydown="if(event.key==='Enter')saveTx()">
+          <label>Valor total (R$) *</label>
+          <input id="txAmount" type="number" min="0.01" step="0.01" placeholder="0,00">
         </div>
         <div class="frow" style="margin-bottom:0">
           <label>Data</label>
@@ -226,9 +281,20 @@
         </div>
       </div>
     </div>
-    <div class="mo-foot">
-      <button class="btn-full btn-cancel" onclick="closeTxModal()">Cancelar</button>
-      <button class="btn-full btn-save" onclick="saveTx()">Adicionar</button>
+
+    <!-- data compartilhada (aba estoque) + rodapé -->
+    <div style="padding:0 24px 20px">
+      <div id="txDateRowEstoque" class="frow-2" style="margin-bottom:16px">
+        <div class="frow" style="margin-bottom:0">
+          <label>Data</label>
+          <input id="txDateEstoque" type="date">
+        </div>
+        <div></div>
+      </div>
+      <div class="mo-foot" style="padding:0;gap:10px">
+        <button class="btn-full btn-cancel" onclick="closeTxModal()">Cancelar</button>
+        <button class="btn-full btn-save" id="txSaveBtn" onclick="saveTx()">Adicionar fiado</button>
+      </div>
     </div>
   </div>
 </div>
@@ -304,7 +370,6 @@ let _quitarId     = null;
 document.addEventListener('DOMContentLoaded', () => {
   REAUTH.require('Fiados');
   renderNav('fiados');
-  document.getElementById('txDate').value  = today();
   document.getElementById('ftDate').value  = today();
   renderStats();
   renderList();
@@ -558,28 +623,140 @@ function doQuitarTudo() {
 }
 
 /* ---- transação CRUD ---- */
+let _txTab      = 'estoque';  // 'estoque' | 'manual'
+let _catFilter  = 'Todas';
+let _prodQtys   = {};         // { productId: qty }
+
 function openAddTx(fiadoId) {
   _txPersonId = fiadoId;
+  _prodQtys   = {};
   const f = DB.getFiados().find(x=>x.id===fiadoId);
   document.getElementById('txModalSub').textContent = f ? `Cliente: ${f.name}` : '';
-  document.getElementById('txDesc').value   = '';
-  document.getElementById('txAmount').value = '';
-  document.getElementById('txDate').value   = today();
+  document.getElementById('txDesc').value      = '';
+  document.getElementById('txAmount').value    = '';
+  document.getElementById('txDate').value      = today();
+  document.getElementById('txDateEstoque').value = today();
+  switchTxTab('estoque');
+  buildCatFilter();
+  renderProdPicker();
+  updateSelSummary();
   document.getElementById('txModal').style.display = 'flex';
-  setTimeout(() => document.getElementById('txDesc').focus(), 60);
 }
 
 function closeTxModal() {
   document.getElementById('txModal').style.display = 'none';
 }
 
+function switchTxTab(tab) {
+  _txTab = tab;
+  document.getElementById('tabEstoque').classList.toggle('active', tab==='estoque');
+  document.getElementById('tabManual').classList.toggle('active', tab==='manual');
+  document.getElementById('tabEstoquePanel').style.display    = tab==='estoque' ? '' : 'none';
+  document.getElementById('tabManualPanel').style.display     = tab==='manual'  ? '' : 'none';
+  document.getElementById('txDateRowEstoque').style.display   = tab==='estoque' ? '' : 'none';
+  if (tab==='manual') setTimeout(()=>document.getElementById('txDesc').focus(), 60);
+}
+
+function buildCatFilter() {
+  const cats = ['Todas', ...new Set(DB.getProducts().map(p=>p.category||'Outros').filter(Boolean))];
+  _catFilter = 'Todas';
+  document.getElementById('catFilter').innerHTML = cats.map(c=>`
+    <button class="cat-pill${c==='Todas'?' active':''}" onclick="setCatFilter('${escHtml(c)}',this)">${escHtml(c)}</button>
+  `).join('');
+}
+
+function setCatFilter(cat, btn) {
+  _catFilter = cat;
+  document.querySelectorAll('.cat-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProdPicker();
+}
+
+function renderProdPicker() {
+  const q = (document.getElementById('prodSearch').value||'').toLowerCase().trim();
+  let prods = DB.getProducts().filter(p => p.stock > 0 || (_prodQtys[p.id]||0) > 0);
+  if (_catFilter !== 'Todas') prods = prods.filter(p=>(p.category||'Outros')===_catFilter);
+  if (q) prods = prods.filter(p=>p.name.toLowerCase().includes(q));
+  prods.sort((a,b)=>a.name.localeCompare(b.name));
+
+  if (!prods.length) {
+    document.getElementById('prodGrid').innerHTML = `<p style="grid-column:1/-1;text-align:center;padding:24px 0;font-size:13px;color:var(--text-muted)">Nenhum produto encontrado.</p>`;
+    return;
+  }
+
+  document.getElementById('prodGrid').innerHTML = prods.map(p => {
+    const qty = _prodQtys[p.id] || 0;
+    return `
+      <div class="prod-card${qty>0?' has-qty':''}" id="pc-${p.id}">
+        <span class="prod-emoji">${p.emoji||'📦'}</span>
+        <div class="prod-info">
+          <div class="prod-name" title="${escHtml(p.name)}">${escHtml(p.name)}</div>
+          <div class="prod-price">${fmtMoney(p.price)} / ${escHtml(p.unit||'un')}</div>
+        </div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(${p.id},-1)">−</button>
+          <span class="qty-val" id="qv-${p.id}">${qty}</span>
+          <button class="qty-btn" onclick="changeQty(${p.id},1)">+</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function changeQty(pid, delta) {
+  const cur = _prodQtys[pid] || 0;
+  const next = Math.max(0, cur + delta);
+  _prodQtys[pid] = next;
+  // Update just this card's qty display and class
+  const qv = document.getElementById(`qv-${pid}`);
+  const pc = document.getElementById(`pc-${pid}`);
+  if (qv) qv.textContent = next;
+  if (pc) pc.classList.toggle('has-qty', next > 0);
+  updateSelSummary();
+}
+
+function updateSelSummary() {
+  const selected = Object.entries(_prodQtys).filter(([,q])=>q>0);
+  const sumEl  = document.getElementById('selSummary');
+  const listEl = document.getElementById('selList');
+  const totEl  = document.getElementById('selTotal');
+  if (!selected.length) { sumEl.style.display='none'; return; }
+  sumEl.style.display = '';
+  let total = 0;
+  listEl.innerHTML = selected.map(([pid, qty]) => {
+    const p = DB.getProduct(parseInt(pid));
+    if (!p) return '';
+    const sub = p.price * qty;
+    total += sub;
+    return `<div style="display:flex;justify-content:space-between;color:var(--text)">
+      <span>${p.emoji||'📦'} ${qty}× ${escHtml(p.name)}</span>
+      <span style="font-weight:600">${fmtMoney(sub)}</span>
+    </div>`;
+  }).join('');
+  totEl.textContent = fmtMoney(total);
+}
+
 function saveTx() {
-  const desc   = document.getElementById('txDesc').value.trim();
-  const amount = parseFloat(document.getElementById('txAmount').value);
-  const date   = document.getElementById('txDate').value || today();
-  if (!desc)          { toast('Informe o que foi fiado.','error'); document.getElementById('txDesc').focus(); return; }
-  if (!amount||amount<=0){ toast('Informe um valor válido.','error'); document.getElementById('txAmount').focus(); return; }
-  DB.addFiadoTransaction(_txPersonId, { description: desc, amount, date });
+  if (_txTab === 'estoque') {
+    const selected = Object.entries(_prodQtys).filter(([,q])=>q>0);
+    if (!selected.length) { toast('Selecione pelo menos um produto.','error'); return; }
+    const date = document.getElementById('txDateEstoque').value || today();
+    let total = 0;
+    const parts = [];
+    selected.forEach(([pid, qty]) => {
+      const p = DB.getProduct(parseInt(pid));
+      if (!p) return;
+      parts.push(`${qty}× ${p.name}`);
+      total += p.price * qty;
+    });
+    DB.addFiadoTransaction(_txPersonId, { description: parts.join(', '), amount: total, date });
+  } else {
+    const desc   = document.getElementById('txDesc').value.trim();
+    const amount = parseFloat(document.getElementById('txAmount').value);
+    const date   = document.getElementById('txDate').value || today();
+    if (!desc)             { toast('Informe o que foi fiado.','error'); document.getElementById('txDesc').focus(); return; }
+    if (!amount||amount<=0){ toast('Informe um valor válido.','error'); document.getElementById('txAmount').focus(); return; }
+    DB.addFiadoTransaction(_txPersonId, { description: desc, amount, date });
+  }
   closeTxModal();
   toast('Fiado adicionado!','success');
   renderStats(); renderList();

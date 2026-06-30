@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+<title>Fiados — Bar e Mercearia Godoy e Souza</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.fiados-empty{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.fiados-empty svg{margin:0 auto 16px;display:block;opacity:.3}
+.search-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search-bar input{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--card);color:var(--text);outline:none}
+.search-bar input:focus{border-color:var(--primary)}
+.filter-tabs{display:flex;gap:4px;background:var(--bg);border-radius:var(--radius-sm);padding:4px}
+.filter-tab{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;border:none;background:none;font-family:inherit;transition:all .15s}
+.filter-tab.active{background:var(--card);color:var(--text);box-shadow:var(--shadow)}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.modal-box{background:var(--card);border-radius:var(--radius-lg);padding:28px;max-width:460px;width:100%;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:20px}
+.form-row{margin-bottom:14px}
+.form-row label{display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:5px}
+.form-row input,.form-row textarea,.form-row select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--card);color:var(--text);outline:none;transition:border .15s}
+.form-row input:focus,.form-row textarea:focus,.form-row select:focus{border-color:var(--primary)}
+.form-row textarea{resize:vertical;min-height:64px}
+.btn-row{display:flex;gap:10px;margin-top:20px}
+.btn-primary{flex:1;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-secondary{flex:1;padding:10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-danger-outline{padding:8px 14px;background:transparent;color:var(--danger);border:1px solid var(--danger);border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.topbar-actions{display:flex;gap:8px}
+.btn-sm{padding:7px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:background .15s}
+.btn-sm-primary{background:var(--primary);color:#fff}
+.btn-sm-primary:hover{background:var(--primary-dark)}
+.fiado-tx-item-empty{font-size:13px;color:var(--text-muted);text-align:center;padding:10px 0}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--primary-lighter);border-radius:8px;margin-top:8px}
+.total-row span:first-child{font-size:13px;font-weight:600;color:var(--text-secondary)}
+.total-row span:last-child{font-size:15px;font-weight:700;color:var(--danger)}
+</style>
+</head>
+<body>
+<div id="navContainer"></div>
+<main class="main">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Fiados</h1>
+      <p class="page-subtitle">Clientes que estão com dívidas em aberto</p>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-sm btn-sm-primary" onclick="openAddPerson()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Devedor
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid" id="fiadosStats" style="margin-bottom:20px"></div>
+
+  <!-- Search + filter -->
+  <div class="card" style="padding:14px 18px;margin-bottom:16px">
+    <div class="search-bar">
+      <input type="search" id="fiadoSearch" placeholder="Buscar por nome..." oninput="renderFiados()">
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="abertos" onclick="setFilter('abertos',this)">Em aberto</button>
+        <button class="filter-tab" data-filter="todos" onclick="setFilter('todos',this)">Todos</button>
+        <button class="filter-tab" data-filter="quitados" onclick="setFilter('quitados',this)">Quitados</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="fiadosContainer"></div>
+</main>
+
+<!-- Modal: add/edit person -->
+<div id="personModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closePersonModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h2 class="modal-title" id="personModalTitle">Novo Devedor</h2>
+    <div class="form-row"><label>Nome *</label><input id="pName" type="text" placeholder="Nome completo" maxlength="100"></div>
+    <div class="form-row"><label>Telefone</label><input id="pPhone" type="tel" placeholder="(00) 00000-0000" maxlength="20"></div>
+    <div class="form-row"><label>Observações</label><textarea id="pNotes" placeholder="Anotações..." maxlength="200"></textarea></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closePersonModal()">Cancelar</button>
+      <button class="btn-primary" onclick="savePerson()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: add transaction -->
+<div id="txModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeTxModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h2 class="modal-title">Adicionar Fiado</h2>
+    <div class="form-row"><label>Descrição *</label><input id="txDesc" type="text" placeholder="Ex: 2 cervejas + 1 refrigerante" maxlength="200"></div>
+    <div class="form-row"><label>Valor (R$) *</label><input id="txAmount" type="number" min="0.01" step="0.01" placeholder="0,00"></div>
+    <div class="form-row"><label>Data</label><input id="txDate" type="date"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeTxModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveTx()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: confirm delete person -->
+<div id="deletePersonModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box" style="max-width:360px" onclick="event.stopPropagation()">
+    <h2 class="modal-title">Apagar devedor?</h2>
+    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px">Isso vai apagar <strong id="deletePersonName"></strong> e todas as dívidas. Essa ação não pode ser desfeita.</p>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="document.getElementById('deletePersonModal').style.display='none'">Cancelar</button>
+      <button class="btn-primary" style="background:var(--danger)" onclick="doDeletePerson()">Apagar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: confirm delete tx -->
+<div id="deleteTxModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box" style="max-width:360px" onclick="event.stopPropagation()">
+    <h2 class="modal-title">Apagar este fiado?</h2>
+    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px">O lançamento será removido permanentemente.</p>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="document.getElementById('deleteTxModal').style.display='none'">Cancelar</button>
+      <button class="btn-primary" style="background:var(--danger)" onclick="doDeleteTx()">Apagar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/reauth.js"></script>
+<script>
+  (function(){ const t=localStorage.getItem('crm_theme')||'white'; document.documentElement.setAttribute('data-theme',t); })();
+
+  let _currentFilter = 'abertos';
+  let _editingPersonId = null;
+  let _addTxPersonId = null;
+  let _deletePersonId = null;
+  let _deleteTxInfo = null; // {fiadoId, txId}
+
+  document.addEventListener('DOMContentLoaded', () => {
+    REAUTH.require('Fiados');
+    renderNav('fiados');
+    // Set today's date as default for tx
+    document.getElementById('txDate').value = new Date().toISOString().slice(0,10);
+    renderStats();
+    renderFiados();
+  });
+
+  function setFilter(f, btn) {
+    _currentFilter = f;
+    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderFiados();
+  }
+
+  function getDebtTotal(fiado) {
+    return (fiado.transactions || []).filter(t => !t.paid).reduce((s, t) => s + (parseFloat(t.amount)||0), 0);
+  }
+
+  function renderStats() {
+    const all = DB.getFiados();
+    const totalPeople = all.length;
+    const openPeople = all.filter(f => getDebtTotal(f) > 0).length;
+    const totalDebt = all.reduce((s, f) => s + getDebtTotal(f), 0);
+    const totalTx = all.reduce((s, f) => s + (f.transactions||[]).filter(t=>!t.paid).length, 0);
+
+    document.getElementById('fiadosStats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-label">Total em aberto</div>
+        <div class="stat-value text-danger">R$ ${totalDebt.toFixed(2).replace('.',',')}</div>
+        <div class="stat-sub">${totalTx} lançamento${totalTx!==1?'s':''} pendente${totalTx!==1?'s':''}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pessoas devendo</div>
+        <div class="stat-value">${openPeople}</div>
+        <div class="stat-sub">de ${totalPeople} cadastrado${totalPeople!==1?'s':''}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total de devedores</div>
+        <div class="stat-value">${totalPeople}</div>
+        <div class="stat-sub">cadastrados no sistema</div>
+      </div>
+    `;
+  }
+
+  function renderFiados() {
+    const q = (document.getElementById('fiadoSearch').value || '').toLowerCase();
+    let list = DB.getFiados().filter(f => f.name.toLowerCase().includes(q));
+
+    if (_currentFilter === 'abertos')  list = list.filter(f => getDebtTotal(f) > 0);
+    if (_currentFilter === 'quitados') list = list.filter(f => getDebtTotal(f) === 0);
+
+    // Sort: most debt first
+    list.sort((a, b) => getDebtTotal(b) - getDebtTotal(a));
+
+    const el = document.getElementById('fiadosContainer');
+    if (!list.length) {
+      el.innerHTML = `
+        <div class="fiados-empty">
+          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="56" height="56">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <p style="font-size:15px;font-weight:600;margin-bottom:4px">Nenhum devedor encontrado</p>
+          <p style="font-size:13px">Tente mudar o filtro ou adicionar um novo devedor.</p>
+        </div>`;
+      return;
+    }
+
+    el.innerHTML = `<div class="fiados-grid">${list.map(f => renderFiadoCard(f)).join('')}</div>`;
+  }
+
+  function renderFiadoCard(f) {
+    const debt = getDebtTotal(f);
+    const txPending = (f.transactions||[]).filter(t => !t.paid);
+    const txPaid   = (f.transactions||[]).filter(t =>  t.paid);
+    const allTx    = [...txPending, ...txPaid];
+
+    const txHtml = allTx.length ? allTx.map(t => `
+      <li class="fiado-tx-item ${t.paid ? 'paid' : ''}">
+        <span class="fiado-tx-desc">${escHtml(t.description)}</span>
+        <span class="fiado-tx-date">${formatDate(t.date)}</span>
+        <span class="fiado-tx-amount">R$ ${parseFloat(t.amount).toFixed(2).replace('.',',')}</span>
+        <span class="fiado-tx-actions">
+          ${!t.paid ? `<button class="fiado-tx-btn fiado-tx-btn-pay" title="Marcar como pago" onclick="payTx(${f.id},${t.id})">✓</button>` : `<button class="fiado-tx-btn fiado-tx-btn-undo" title="Desfazer pagamento" onclick="unpayTx(${f.id},${t.id})">↩</button>`}
+          <button class="fiado-tx-btn fiado-tx-btn-del" title="Apagar" onclick="confirmDeleteTx(${f.id},${t.id})">×</button>
+        </span>
+      </li>`).join('') : `<p class="fiado-tx-item-empty">Nenhum lançamento.</p>`;
+
+    return `
+      <div class="fiado-card">
+        <div class="fiado-card-header">
+          <div class="fiado-avatar">${escHtml(f.name[0].toUpperCase())}</div>
+          <div style="flex:1;min-width:0">
+            <div class="fiado-card-name">${escHtml(f.name)}</div>
+            ${f.phone ? `<div class="fiado-card-phone">📞 ${escHtml(f.phone)}</div>` : ''}
+          </div>
+          <div class="fiado-card-debt">
+            <div class="fiado-debt-value">R$ ${debt.toFixed(2).replace('.',',')}</div>
+            <div class="fiado-debt-label">em aberto</div>
+          </div>
+        </div>
+        <div class="fiado-card-body">
+          ${f.notes ? `<p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;font-style:italic">${escHtml(f.notes)}</p>` : ''}
+          <ul class="fiado-tx-list">${txHtml}</ul>
+          ${allTx.length > 0 ? `<div class="total-row"><span>Total em aberto</span><span>R$ ${debt.toFixed(2).replace('.',',')}</span></div>` : ''}
+          <div class="fiado-card-actions" style="margin-top:14px">
+            <button class="btn-sm btn-sm-primary" style="flex:1" onclick="openAddTx(${f.id})">+ Adicionar fiado</button>
+            <button class="btn-sm" style="background:var(--bg);color:var(--text);border:1px solid var(--border)" onclick="openEditPerson(${f.id})">Editar</button>
+            <button class="btn-sm" style="background:var(--danger-bg);color:var(--danger);border:none" onclick="confirmDeletePerson(${f.id})">Apagar</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function formatDate(d) {
+    if (!d) return '';
+    const [y,m,day] = d.split('-');
+    return `${day}/${m}/${y}`;
+  }
+
+  // ---- Person CRUD ----
+  function openAddPerson() {
+    _editingPersonId = null;
+    document.getElementById('personModalTitle').textContent = 'Novo Devedor';
+    document.getElementById('pName').value = '';
+    document.getElementById('pPhone').value = '';
+    document.getElementById('pNotes').value = '';
+    document.getElementById('personModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('pName').focus(), 80);
+  }
+
+  function openEditPerson(id) {
+    const f = DB.getFiados().find(x => x.id === id);
+    if (!f) return;
+    _editingPersonId = id;
+    document.getElementById('personModalTitle').textContent = 'Editar Devedor';
+    document.getElementById('pName').value = f.name;
+    document.getElementById('pPhone').value = f.phone || '';
+    document.getElementById('pNotes').value = f.notes || '';
+    document.getElementById('personModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('pName').focus(), 80);
+  }
+
+  function closePersonModal() {
+    document.getElementById('personModal').style.display = 'none';
+  }
+
+  function savePerson() {
+    const name = document.getElementById('pName').value.trim();
+    if (!name) { alert('Informe o nome.'); return; }
+    const data = {
+      name,
+      phone: document.getElementById('pPhone').value.trim(),
+      notes: document.getElementById('pNotes').value.trim()
+    };
+    if (_editingPersonId) {
+      DB.updateFiado(_editingPersonId, data);
+    } else {
+      DB.addFiado(data);
+    }
+    closePersonModal();
+    renderStats();
+    renderFiados();
+  }
+
+  function confirmDeletePerson(id) {
+    const f = DB.getFiados().find(x => x.id === id);
+    if (!f) return;
+    _deletePersonId = id;
+    document.getElementById('deletePersonName').textContent = f.name;
+    document.getElementById('deletePersonModal').style.display = 'flex';
+  }
+
+  function doDeletePerson() {
+    if (!_deletePersonId) return;
+    DB.deleteFiado(_deletePersonId);
+    _deletePersonId = null;
+    document.getElementById('deletePersonModal').style.display = 'none';
+    renderStats();
+    renderFiados();
+  }
+
+  // ---- Transaction CRUD ----
+  function openAddTx(fiadoId) {
+    _addTxPersonId = fiadoId;
+    document.getElementById('txDesc').value = '';
+    document.getElementById('txAmount').value = '';
+    document.getElementById('txDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('txModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('txDesc').focus(), 80);
+  }
+
+  function closeTxModal() {
+    document.getElementById('txModal').style.display = 'none';
+  }
+
+  function saveTx() {
+    const desc = document.getElementById('txDesc').value.trim();
+    const amount = parseFloat(document.getElementById('txAmount').value);
+    const date = document.getElementById('txDate').value;
+    if (!desc) { alert('Informe a descrição.'); return; }
+    if (!amount || amount <= 0) { alert('Informe um valor válido.'); return; }
+    DB.addFiadoTransaction(_addTxPersonId, { description: desc, amount, date });
+    closeTxModal();
+    renderStats();
+    renderFiados();
+  }
+
+  function payTx(fiadoId, txId) {
+    DB.markTxPaid(fiadoId, txId);
+    renderStats();
+    renderFiados();
+  }
+
+  function unpayTx(fiadoId, txId) {
+    DB.markTxUnpaid(fiadoId, txId);
+    renderStats();
+    renderFiados();
+  }
+
+  function confirmDeleteTx(fiadoId, txId) {
+    _deleteTxInfo = { fiadoId, txId };
+    document.getElementById('deleteTxModal').style.display = 'flex';
+  }
+
+  function doDeleteTx() {
+    if (!_deleteTxInfo) return;
+    DB.deleteFiadoTx(_deleteTxInfo.fiadoId, _deleteTxInfo.txId);
+    _deleteTxInfo = null;
+    document.getElementById('deleteTxModal').style.display = 'none';
+    renderStats();
+    renderFiados();
+  }
+</script>
+</body>
+</html>

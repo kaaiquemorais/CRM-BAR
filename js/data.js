@@ -112,6 +112,66 @@ const DB = {
   },
   deleteOrder(id) { this.saveOrders(this.getOrders().filter(o => o.id !== id)) },
 
+  // ---- FIADOS ----
+  getFiados() { return this._get('crm_fiados') || [] },
+  saveFiados(arr) { this._set('crm_fiados', arr) },
+  addFiado(f) {
+    const arr = this.getFiados();
+    f.id = this.nextId();
+    f.name  = sanitize(f.name, 100);
+    f.phone = sanitize(f.phone, 20);
+    f.notes = sanitize(f.notes, 200);
+    f.transactions = [];
+    f.createdAt = new Date().toISOString();
+    arr.push(f);
+    this.saveFiados(arr);
+    return f;
+  },
+  updateFiado(id, data) {
+    if (data.name)  data.name  = sanitize(data.name, 100);
+    if (data.phone) data.phone = sanitize(data.phone, 20);
+    if (data.notes) data.notes = sanitize(data.notes, 200);
+    const arr = this.getFiados().map(f => f.id === id ? { ...f, ...data, id } : f);
+    this.saveFiados(arr);
+  },
+  deleteFiado(id) { this.saveFiados(this.getFiados().filter(f => f.id !== id)) },
+  addFiadoTransaction(fiadoId, tx) {
+    const arr = this.getFiados();
+    const f = arr.find(x => x.id === fiadoId);
+    if (!f) return;
+    tx.id = this.nextId();
+    tx.description = sanitize(tx.description, 200);
+    tx.date = tx.date || new Date().toISOString().slice(0,10);
+    tx.paid = false;
+    tx.createdAt = new Date().toISOString();
+    f.transactions.push(tx);
+    this.saveFiados(arr);
+    return tx;
+  },
+  markTxPaid(fiadoId, txId) {
+    const arr = this.getFiados();
+    const f = arr.find(x => x.id === fiadoId);
+    if (!f) return;
+    const tx = f.transactions.find(t => t.id === txId);
+    if (tx) { tx.paid = true; tx.paidAt = new Date().toISOString(); }
+    this.saveFiados(arr);
+  },
+  markTxUnpaid(fiadoId, txId) {
+    const arr = this.getFiados();
+    const f = arr.find(x => x.id === fiadoId);
+    if (!f) return;
+    const tx = f.transactions.find(t => t.id === txId);
+    if (tx) { tx.paid = false; tx.paidAt = null; }
+    this.saveFiados(arr);
+  },
+  deleteFiadoTx(fiadoId, txId) {
+    const arr = this.getFiados();
+    const f = arr.find(x => x.id === fiadoId);
+    if (!f) return;
+    f.transactions = f.transactions.filter(t => t.id !== txId);
+    this.saveFiados(arr);
+  },
+
   // ---- BILLS (Contas) ----
   getBills() { return this._get('crm_bills') || [] },
   saveBills(arr) { this._set('crm_bills', arr) },

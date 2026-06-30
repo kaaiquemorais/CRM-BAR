@@ -13,6 +13,7 @@
 <meta property="og:type" content="website">
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 .recent-orders-table tbody td:first-child{font-weight:600;color:var(--primary)}
 </style>
@@ -27,6 +28,10 @@
         <p id="topbarDate"></p>
       </div>
       <div class="topbar-actions">
+        <button class="btn btn-secondary btn-sm" onclick="exportExcel()" id="exportBtn">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Baixar Excel
+        </button>
         <button class="btn btn-primary btn-sm" onclick="location.href='pedidos.html'">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Novo Pedido
@@ -443,6 +448,132 @@ function renderLowStock() {
 
 // Initialize with default period (mes)
 setPeriod('mes');
+
+// ---- EXPORT EXCEL ----
+function exportExcel() {
+  const btn = document.getElementById('exportBtn');
+  btn.textContent = 'Gerando...';
+  btn.disabled = true;
+
+  const wb = XLSX.utils.book_new();
+  const periodNames = { dia: 'Hoje', semana: 'Esta Semana', mes: 'Este Mes' };
+  const periodName = periodNames[currentPeriod] || 'Periodo';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR');
+
+  // ---- Aba 1: Resumo ----
+  const resumoData = [
+    ['Bar e Mercearia Godoy e Souza', '', '', ''],
+    ['Relatorio gerado em:', dateStr, '', ''],
+    ['Periodo:', periodName, '', ''],
+    ['', '', '', ''],
+    ['RESUMO GERAL', '', '', ''],
+    ['Indicador', 'Valor', '', ''],
+    ['Pedidos no periodo', stats.periodOrders, '', ''],
+    ['Receita no periodo', stats.periodRevenue, '', ''],
+    ['Total de produtos cadastrados', stats.totalProducts, '', ''],
+    ['Total de pedidos (historico)', stats.totalOrders, '', ''],
+    ['Produtos com estoque baixo', stats.lowStock, '', ''],
+    ['Produtos sem estoque', stats.outOfStock, '', ''],
+    ['', '', '', ''],
+    ['RECEITA POR CATEGORIA', '', '', ''],
+    ['Categoria', 'Receita (R$)', '', ''],
+    ...Object.entries(stats.catRevenue || {}).sort((a,b)=>b[1]-a[1]).map(([cat, val]) => [cat, val]),
+  ];
+  const wsResumo = XLSX.utils.aoa_to_sheet(resumoData);
+  wsResumo['!cols'] = [{ wch: 35 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
+  XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo');
+
+  // ---- Aba 2: Pedidos do Periodo ----
+  const orders = getPeriodOrders(currentPeriod);
+  const pedidosData = [
+    ['PEDIDOS - ' + periodName.toUpperCase()],
+    ['Numero', 'Cliente', 'Itens', 'Descricao dos Itens', 'Total (R$)', 'Status', 'Data'],
+    ...orders.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map(o => {
+      const statusMap = { pago: 'Pago', aberto: 'Aberto', cancelado: 'Cancelado' };
+      const itensDesc = (o.items||[]).map(i => `${i.quantity}x ${i.productName}`).join(' | ');
+      return [
+        o.orderNumber,
+        o.client || 'Consumidor',
+        (o.items||[]).length,
+        itensDesc,
+        o.total,
+        statusMap[o.status] || o.status,
+        new Date(o.createdAt).toLocaleString('pt-BR'),
+      ];
+    }),
+  ];
+  const wsPedidos = XLSX.utils.aoa_to_sheet(pedidosData);
+  wsPedidos['!cols'] = [{ wch: 14 }, { wch: 20 }, { wch: 8 }, { wch: 50 }, { wch: 14 }, { wch: 12 }, { wch: 20 }];
+  XLSX.utils.book_append_sheet(wb, wsPedidos, 'Pedidos');
+
+  // ---- Aba 3: Mais Vendidos ----
+  const maisVendidosData = [
+    ['PRODUTOS MAIS VENDIDOS - ' + periodName.toUpperCase()],
+    ['Posicao', 'Produto', 'Quantidade Vendida'],
+    ...(stats.topProducts || []).map((p, i) => [i + 1, p.name, p.qty]),
+  ];
+  const wsMais = XLSX.utils.aoa_to_sheet(maisVendidosData);
+  wsMais['!cols'] = [{ wch: 10 }, { wch: 35 }, { wch: 20 }];
+  XLSX.utils.book_append_sheet(wb, wsMais, 'Mais Vendidos');
+
+  // ---- Aba 4: Estoque Completo ----
+  const products = DB.getProducts();
+  const estoqueData = [
+    ['ESTOQUE COMPLETO'],
+    ['Produto', 'Categoria', 'Preco de Venda (R$)', 'Custo (R$)', 'Margem (%)', 'Estoque Atual', 'Estoque Minimo', 'Unidade', 'Status'],
+    ...products.map(p => {
+      const margin = (p.price && p.cost && p.price > 0)
+        ? Math.round(((p.price - p.cost) / p.price) * 100)
+        : null;
+      const status = p.stock === 0 ? 'Sem estoque' : p.stock <= p.minStock ? 'Estoque baixo' : 'OK';
+      return [
+        p.name,
+        p.category || 'Outros',
+        p.price || 0,
+        p.cost || 0,
+        margin !== null ? margin + '%' : '-',
+        p.stock,
+        p.minStock,
+        p.unit || 'un',
+        status,
+      ];
+    }),
+  ];
+  const wsEstoque = XLSX.utils.aoa_to_sheet(estoqueData);
+  wsEstoque['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 15 }, { wch: 16 }, { wch: 10 }, { wch: 15 }];
+  XLSX.utils.book_append_sheet(wb, wsEstoque, 'Estoque');
+
+  // ---- Aba 5: Historico Completo de Pedidos ----
+  const allOrders = DB.getOrders().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const historicoData = [
+    ['HISTORICO COMPLETO DE PEDIDOS'],
+    ['Numero', 'Cliente', 'Itens', 'Total (R$)', 'Status', 'Data de Criacao', 'Data de Atualizacao'],
+    ...allOrders.map(o => {
+      const statusMap = { pago: 'Pago', aberto: 'Aberto', cancelado: 'Cancelado' };
+      return [
+        o.orderNumber,
+        o.client || 'Consumidor',
+        (o.items||[]).map(i => `${i.quantity}x ${i.productName}`).join(' | '),
+        o.total,
+        statusMap[o.status] || o.status,
+        new Date(o.createdAt).toLocaleString('pt-BR'),
+        o.updatedAt ? new Date(o.updatedAt).toLocaleString('pt-BR') : '-',
+      ];
+    }),
+  ];
+  const wsHist = XLSX.utils.aoa_to_sheet(historicoData);
+  wsHist['!cols'] = [{ wch: 14 }, { wch: 20 }, { wch: 60 }, { wch: 14 }, { wch: 12 }, { wch: 22 }, { wch: 22 }];
+  XLSX.utils.book_append_sheet(wb, wsHist, 'Historico Pedidos');
+
+  // Gerar e baixar
+  const fileName = `Relatorio_Godoy_Souza_${dateStr.replace(/\//g, '-')}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+
+  btn.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Baixar Excel`;
+  btn.disabled = false;
+  toast('Excel gerado com sucesso!', 'success');
+}
 </script>
 </body>
 </html>

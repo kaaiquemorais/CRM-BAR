@@ -1,5 +1,4 @@
 [[redirects]]
-  from = "/*"
+  from = "/"
   to = "/login.html"
-  status = 200
-  conditions = {Role = ["anonymous"]}
+  status = 302

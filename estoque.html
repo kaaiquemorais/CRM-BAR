@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'none'">
+<title>Estoque | Bar e Mercearia Godoy e Souza</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.product-row td .product-emoji{font-size:20px;margin-right:8px}
+.adj-btns{display:flex;gap:6px}
+</style>
+</head>
+<body>
+<div id="navContainer"></div>
+<div class="layout">
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>Estoque</h1>
+        <p>Gerencie seus produtos e quantidades</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openMovimentacoes()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V10m-6 6 6 4 6-4M6 12l6-8 6 8"/></svg>
+          Movimentações
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openModal()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Produto
+        </button>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <!-- Summary cards -->
+      <div class="stats-grid" id="stockStats"></div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-input" style="flex:1;max-width:340px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="Buscar produto…" oninput="renderProducts()">
+        </div>
+        <div class="filter-pills" id="filterPills"></div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="table-wrap">
+          <table id="productsTable">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Categoria</th>
+                <th>Preço Venda</th>
+                <th>Custo</th>
+                <th>Estoque</th>
+                <th>Status</th>
+                <th style="text-align:right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="productsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Add/Edit Product -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 id="modalTitle">Novo Produto</h3>
+        <p id="modalSubtitle">Preencha os dados do produto</p>
+      </div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-row cols-2">
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Nome do Produto *</label>
+          <input type="text" id="fName" placeholder="Ex: Cerveja Lata 350ml">
+        </div>
+        <div class="form-group">
+          <label>Categoria *</label>
+          <select id="fCategory">
+            <option value="">Selecione…</option>
+            <option value="Bebidas">🍺 Bebidas</option>
+            <option value="Porções">🍟 Porções</option>
+            <option value="Comidas">🍔 Comidas</option>
+            <option value="Outros">📦 Outros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Emoji (opcional)</label>
+          <input type="text" id="fEmoji" placeholder="🍺" maxlength="4">
+        </div>
+        <div class="form-group">
+          <label>Preço de Venda (R$) *</label>
+          <input type="number" id="fPrice" placeholder="0,00" step="0.01" min="0" oninput="calcMargin()">
+        </div>
+        <div class="form-group">
+          <label>Custo do Produto (R$)</label>
+          <input type="number" id="fCost" placeholder="0,00" step="0.01" min="0" oninput="calcMargin()">
+          <div class="form-hint">Valor que você paga pelo produto</div>
+        </div>
+        <!-- Margin display -->
+        <div id="marginBox" style="display:none;grid-column:1/-1">
+          <div id="marginCard" style="border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;gap:20px;flex-wrap:wrap">
+              <div><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;opacity:.7">Lucro por unidade</div><div id="marginProfit" style="font-size:18px;font-weight:800;margin-top:2px"></div></div>
+              <div><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;opacity:.7">Margem de lucro</div><div id="marginPct" style="font-size:18px;font-weight:800;margin-top:2px"></div></div>
+              <div><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;opacity:.7">Markup</div><div id="marginMarkup" style="font-size:18px;font-weight:800;margin-top:2px"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Estoque Inicial *</label>
+          <input type="number" id="fStock" placeholder="0" min="0" step="1">
+        </div>
+        <div class="form-group">
+          <label>Estoque Mínimo</label>
+          <input type="number" id="fMinStock" placeholder="5" min="0" step="1">
+          <div class="form-hint">Alerta quando atingir este valor</div>
+        </div>
+        <div class="form-group">
+          <label>Unidade</label>
+          <select id="fUnit">
+            <option value="un">Unidade (un)</option>
+            <option value="cx">Caixa (cx)</option>
+            <option value="kg">Quilo (kg)</option>
+            <option value="L">Litro (L)</option>
+            <option value="ml">Mililitro (ml)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Salvar Produto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Adjust Stock -->
+<div class="modal-overlay" id="adjustModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div>
+        <h3 id="adjustTitle">Ajustar Estoque</h3>
+        <p id="adjustSub"></p>
+      </div>
+      <button class="modal-close" onclick="closeAdjust()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="adjustId">
+      <div class="form-group">
+        <label>Tipo de Movimentação</label>
+        <select id="adjustType">
+          <option value="entrada">Entrada (adicionar estoque)</option>
+          <option value="saida">Saída (remover estoque)</option>
+          <option value="ajuste">Ajuste (definir quantidade)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label id="adjustQtyLabel">Quantidade</label>
+        <input type="number" id="adjustQty" placeholder="0" min="0" step="1">
+      </div>
+      <div class="form-group">
+        <label>Motivo (opcional)</label>
+        <input type="text" id="adjustReason" placeholder="Ex: Reposição semanal">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeAdjust()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmAdjust()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Movimentações -->
+<div class="modal-overlay" id="movModal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <div><h3>Histórico de Movimentações</h3><p>Entradas e saídas de estoque</p></div>
+      <button class="modal-close" onclick="closeMov()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div class="table-wrap" style="max-height:480px;overflow-y:auto">
+        <table>
+          <thead><tr><th>Produto</th><th>Tipo</th><th>Qtd</th><th>Motivo</th><th>Data</th></tr></thead>
+          <tbody id="movBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/reauth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script>
+DB.init();
+REAUTH.require('Estoque');
+renderNav('estoque');
+
+const CATS = ['Todas', 'Bebidas', 'Porções', 'Comidas', 'Outros'];
+let activeFilter = 'Todas';
+
+function getCatClass(c) {
+  const m = { bebidas:'cat-bebidas', porções:'cat-porcoes', comidas:'cat-comidas', outros:'cat-outros' };
+  return m[(c||'outros').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ç/g,'c').replace(/õ/g,'o')] || 'cat-outros';
+}
+
+function renderFilterPills() {
+  document.getElementById('filterPills').innerHTML = CATS.map(c =>
+    `<button class="pill ${activeFilter===c?'active':''}" onclick="setFilter('${c}')">${c}</button>`
+  ).join('');
+}
+
+window.setFilter = function(c) { activeFilter = c; renderFilterPills(); renderProducts(); };
+
+function renderStats() {
+  const products = DB.getProducts();
+  const lowStock = products.filter(p => p.stock <= p.minStock && p.stock > 0).length;
+  const outOfStock = products.filter(p => p.stock === 0).length;
+  const totalValue = products.reduce((s, p) => s + p.stock * p.cost, 0);
+  document.getElementById('stockStats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon indigo"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></div>
+      <div class="stat-info"><div class="stat-label">Total de Produtos</div><div class="stat-value">${products.length}</div><div class="stat-sub">cadastrados</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+      <div class="stat-info"><div class="stat-label">Valor em Estoque</div><div class="stat-value">${fmtMoney(totalValue)}</div><div class="stat-sub">preço de custo</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="stat-info"><div class="stat-label">Estoque Baixo</div><div class="stat-value">${lowStock}</div><div class="stat-sub">abaixo do mínimo</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+      <div class="stat-info"><div class="stat-label">Sem Estoque</div><div class="stat-value">${outOfStock}</div><div class="stat-sub">produtos zerados</div></div>
+    </div>`;
+}
+
+function renderProducts() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let products = DB.getProducts();
+  if (activeFilter !== 'Todas') products = products.filter(p => p.category === activeFilter);
+  if (search) products = products.filter(p => p.name.toLowerCase().includes(search) || (p.category||'').toLowerCase().includes(search));
+
+  if (!products.length) {
+    document.getElementById('productsBody').innerHTML = `<tr><td colspan="7"><div class="empty-state"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg><h3>Nenhum produto encontrado</h3><p>Tente ajustar os filtros ou adicione um novo produto</p></div></td></tr>`;
+    return;
+  }
+
+  document.getElementById('productsBody').innerHTML = products.map(p => {
+    const pct = p.minStock > 0 ? Math.min(100, Math.round(p.stock / p.minStock * 100)) : 100;
+    let statusCls = 'badge-success', statusLbl = 'OK';
+    let barCls = 'stock-ok';
+    if (p.stock === 0) { statusCls = 'badge-danger'; statusLbl = 'Sem estoque'; barCls = 'stock-out'; }
+    else if (p.stock <= p.minStock) { statusCls = 'badge-warning'; statusLbl = 'Estoque baixo'; barCls = 'stock-low'; }
+    const margin = p.cost > 0 ? Math.round((p.price - p.cost) / p.price * 100) : null;
+    return `<tr>
+      <td>
+        <span class="product-emoji">${escHtml(p.emoji || '📦')}</span>
+        <strong>${escHtml(p.name)}</strong>
+        ${margin !== null ? `<div class="td-meta">Margem: ${margin}%</div>` : ''}
+      </td>
+      <td><span class="badge ${getCatClass(p.category)}">${escHtml(p.category || 'Outros')}</span></td>
+      <td><strong>${fmtMoney(p.price)}</strong></td>
+      <td>${p.cost ? fmtMoney(p.cost) : '<span class="text-muted">-</span>'}</td>
+      <td>
+        <strong>${p.stock}</strong> ${escHtml(p.unit || 'un')}
+        <div class="${barCls}" style="margin-top:6px">
+          <div class="stock-bar"><div class="stock-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="td-meta">mín: ${p.minStock}</div>
+      </td>
+      <td><span class="badge ${statusCls}">${statusLbl}</span></td>
+      <td>
+        <div class="adj-btns" style="justify-content:flex-end">
+          <button class="btn btn-secondary btn-sm btn-icon" title="Ajustar estoque" onclick="openAdjust(${p.id})">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V10m-6 6 6 4 6-4M6 12l6-8 6 8"/></svg>
+          </button>
+          <button class="btn btn-secondary btn-sm btn-icon" title="Editar produto" onclick="openModal(${p.id})">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn btn-danger btn-sm btn-icon" title="Excluir produto" onclick="deleteProduct(${p.id})">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ---- Modal Add/Edit ----
+window.openModal = function(id) {
+  document.getElementById('editId').value = id || '';
+  document.getElementById('productModal').classList.add('show');
+  if (id) {
+    const p = DB.getProduct(id);
+    document.getElementById('modalTitle').textContent = 'Editar Produto';
+    document.getElementById('modalSubtitle').textContent = p.name;
+    document.getElementById('fName').value = p.name || '';
+    document.getElementById('fCategory').value = p.category || '';
+    document.getElementById('fEmoji').value = p.emoji || '';
+    document.getElementById('fPrice').value = p.price || '';
+    document.getElementById('fCost').value = p.cost || '';
+    document.getElementById('fStock').value = p.stock || 0;
+    document.getElementById('fMinStock').value = p.minStock || 0;
+    document.getElementById('fUnit').value = p.unit || 'un';
+  } else {
+    document.getElementById('modalTitle').textContent = 'Novo Produto';
+    document.getElementById('modalSubtitle').textContent = 'Preencha os dados do produto';
+    document.getElementById('fName').value = '';
+    document.getElementById('fCategory').value = '';
+    document.getElementById('fEmoji').value = '';
+    document.getElementById('fPrice').value = '';
+    document.getElementById('fCost').value = '';
+    document.getElementById('fStock').value = '';
+    document.getElementById('fMinStock').value = 5;
+    document.getElementById('fUnit').value = 'un';
+  }
+};
+
+window.closeModal = function() { document.getElementById('productModal').classList.remove('show'); };
+
+window.saveProduct = function() {
+  const id = document.getElementById('editId').value;
+  const name = document.getElementById('fName').value.trim();
+  const category = document.getElementById('fCategory').value;
+  const price = parseFloat(document.getElementById('fPrice').value);
+
+  if (!name) { toast('Informe o nome do produto', 'warning'); return; }
+  if (!category) { toast('Selecione uma categoria', 'warning'); return; }
+  if (!price || price <= 0) { toast('Informe o preço de venda', 'warning'); return; }
+
+  const data = {
+    name,
+    category,
+    emoji: document.getElementById('fEmoji').value.trim() || getDefaultEmoji(category),
+    price,
+    cost: parseFloat(document.getElementById('fCost').value) || 0,
+    stock: parseInt(document.getElementById('fStock').value) || 0,
+    minStock: parseInt(document.getElementById('fMinStock').value) || 0,
+    unit: document.getElementById('fUnit').value || 'un'
+  };
+
+  if (id) {
+    DB.updateProduct(parseInt(id), data);
+    toast('Produto atualizado com sucesso!', 'success');
+  } else {
+    DB.addProduct(data);
+    toast('Produto adicionado com sucesso!', 'success');
+  }
+
+  closeModal();
+  renderProducts();
+  renderStats();
+};
+
+function getDefaultEmoji(cat) {
+  const m = { Bebidas: '🍺', Porções: '🍟', Comidas: '🍔', Outros: '📦' };
+  return m[cat] || '📦';
+}
+
+window.deleteProduct = function(id) {
+  const p = DB.getProduct(id);
+  if (!confirm(`Excluir "${p.name}"? Esta ação não pode ser desfeita.`)) return;
+  DB.deleteProduct(id);
+  toast('Produto excluído', 'default');
+  renderProducts();
+  renderStats();
+};
+
+// ---- Adjust Modal ----
+window.openAdjust = function(id) {
+  const p = DB.getProduct(id);
+  document.getElementById('adjustId').value = id;
+  document.getElementById('adjustTitle').textContent = 'Ajustar Estoque';
+  document.getElementById('adjustSub').textContent = `${p.emoji || ''} ${p.name} · atual: ${p.stock} ${p.unit || 'un'}`;
+  document.getElementById('adjustQty').value = '';
+  document.getElementById('adjustReason').value = '';
+  document.getElementById('adjustType').value = 'entrada';
+  document.getElementById('adjustModal').classList.add('show');
+};
+window.closeAdjust = function() { document.getElementById('adjustModal').classList.remove('show'); };
+window.confirmAdjust = function() {
+  const id = parseInt(document.getElementById('adjustId').value);
+  const qty = parseInt(document.getElementById('adjustQty').value);
+  const type = document.getElementById('adjustType').value;
+  const reason = document.getElementById('adjustReason').value.trim() || 'Ajuste manual';
+  if (!qty || qty <= 0) { toast('Informe uma quantidade válida', 'warning'); return; }
+  const delta = type === 'saida' ? -qty : type === 'ajuste' ? (qty - DB.getProduct(id).stock) : qty;
+  DB.adjustStock(id, delta, type, reason);
+  toast('Estoque ajustado com sucesso!', 'success');
+  closeAdjust();
+  renderProducts();
+  renderStats();
+};
+
+// ---- Movimentações Modal ----
+window.openMovimentacoes = function() {
+  const movs = DB.getMovements().slice(0, 100);
+  const typeLabel = { entrada: ['badge-success','Entrada'], saida: ['badge-danger','Saída'], ajuste: ['badge-info','Ajuste'] };
+  document.getElementById('movBody').innerHTML = movs.length
+    ? movs.map(m => {
+        const [cls, lbl] = typeLabel[m.type] || ['badge-gray', m.type];
+        return `<tr>
+          <td><strong>${escHtml(m.productName)}</strong></td>
+          <td><span class="badge ${cls}">${lbl}</span></td>
+          <td><strong>${m.quantity}</strong></td>
+          <td>${escHtml(m.reason || '')}</td>
+          <td>${fmtDate(m.date, true)}</td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="5" class="text-center" style="padding:40px;color:var(--text-muted)">Nenhuma movimentação registrada</td></tr>`;
+  document.getElementById('movModal').classList.add('show');
+};
+window.closeMov = function() { document.getElementById('movModal').classList.remove('show'); };
+
+// close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); });
+});
+
+window.calcMargin = function() {
+  const price = parseFloat(document.getElementById('fPrice').value) || 0;
+  const cost = parseFloat(document.getElementById('fCost').value) || 0;
+  const box = document.getElementById('marginBox');
+  if (!price || !cost) { box.style.display = 'none'; return; }
+  const profit = price - cost;
+  const margin = (profit / price) * 100;
+  const markup = (profit / cost) * 100;
+  const isGood = margin >= 40;
+  const isMid = margin >= 20 && margin < 40;
+  const card = document.getElementById('marginCard');
+  card.style.background = isGood ? '#dcfce7' : isMid ? '#fef3c7' : '#fee2e2';
+  card.style.color = isGood ? '#166534' : isMid ? '#92400e' : '#dc2626';
+  document.getElementById('marginProfit').textContent = fmtMoney(profit);
+  document.getElementById('marginPct').textContent = margin.toFixed(1) + '%';
+  document.getElementById('marginMarkup').textContent = markup.toFixed(1) + '%';
+  box.style.display = '';
+};
+
+renderFilterPills();
+renderStats();
+renderProducts();
+</script>
+</body>
+</html>

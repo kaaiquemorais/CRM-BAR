@@ -1,0 +1,15 @@
+{
+  "name": "bar-crm",
+  "version": "1.0.0",
+  "description": "CRM para gestão de bar",
+  "scripts": {
+    "dev": "live-server --port=3000 --open=login.html",
+    "start": "serve -l 3000"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {
+    "serve": "^14.2.3"
+  }
+}

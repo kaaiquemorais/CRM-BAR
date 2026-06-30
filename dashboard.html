@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'none'">
+<title>Dashboard | Bar e Mercearia Godoy e Souza</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+.recent-orders-table tbody td:first-child{font-weight:600;color:var(--primary)}
+</style>
+</head>
+<body>
+<div id="navContainer"></div>
+<div class="layout">
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>Dashboard</h1>
+        <p id="topbarDate"></p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="location.href='pedidos.html'">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Pedido
+        </button>
+      </div>
+    </header>
+
+    <main class="page-content">
+
+      <!-- Period Selector -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap">
+        <div class="chart-tabs" id="periodTabs">
+          <button class="chart-tab" id="pDia" onclick="setPeriod('dia')">Hoje</button>
+          <button class="chart-tab" id="pSemana" onclick="setPeriod('semana')">Semana</button>
+          <button class="chart-tab active" id="pMes" onclick="setPeriod('mes')">Mês</button>
+        </div>
+        <span id="periodLabel" style="font-size:13px;color:var(--text-secondary)"></span>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Charts Row -->
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 id="chartTitle">Receita do Período</h3>
+              <p id="chartSubtitle">Últimos 6 meses</p>
+            </div>
+            <div class="chart-tabs">
+              <button class="chart-tab active" id="tabRevenue" onclick="switchChart('revenue')">Receita</button>
+              <button class="chart-tab" id="tabOrders" onclick="switchChart('orders')">Pedidos</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container"><canvas id="revenueChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Por Categoria</h3>
+              <p>Distribuição de vendas</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height:240px"><canvas id="categoryChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Products + Recent Orders -->
+      <div class="charts-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Pedidos Recentes</h3>
+              <p>Últimos registros</p>
+            </div>
+            <a href="pedidos.html" class="btn btn-secondary btn-sm">Ver todos</a>
+          </div>
+          <div class="table-wrap">
+            <table class="recent-orders-table">
+              <thead>
+                <tr>
+                  <th>Nº</th>
+                  <th>Cliente</th>
+                  <th>Itens</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody id="recentOrdersBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>Mais Vendidos</h3>
+              <p>Produtos em destaque</p>
+            </div>
+          </div>
+          <div class="card-body" style="padding-top:16px">
+            <div class="chart-container" style="height:260px"><canvas id="topProductsChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Low Stock Alert -->
+      <div class="card" id="lowStockCard" style="margin-top:0">
+        <div class="card-header">
+          <div>
+            <h3>⚠️ Alerta de Estoque Baixo</h3>
+            <p>Produtos que precisam de reposição</p>
+          </div>
+          <a href="estoque.html" class="btn btn-secondary btn-sm">Gerenciar Estoque</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Produto</th><th>Categoria</th><th>Estoque Atual</th><th>Mínimo</th><th>Status</th></tr>
+            </thead>
+            <tbody id="lowStockBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/reauth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script>
+DB.init();
+REAUTH.require('Dashboard');
+renderNav('dashboard');
+
+const now = new Date();
+document.getElementById('topbarDate').textContent = now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+let currentPeriod = 'mes';
+let revenueChartMode = 'revenue';
+let revenueChartInst, catChartInst, topChartInst;
+let stats = {};
+
+// ---- PERIOD ----
+function getPeriodOrders(period) {
+  const all = DB.getOrders().filter(o => o.status === 'pago');
+  const now = new Date();
+  return all.filter(o => {
+    const d = new Date(o.createdAt);
+    if (period === 'dia') return d.toDateString() === now.toDateString();
+    if (period === 'semana') {
+      const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
+      return d >= weekAgo;
+    }
+    if (period === 'mes') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    return true;
+  });
+}
+
+function buildPeriodStats(period) {
+  const orders = getPeriodOrders(period);
+  const products = DB.getProducts();
+  const revenue = orders.reduce((s, o) => s + o.total, 0);
+  const lowStock = products.filter(p => p.stock <= p.minStock);
+  const outOfStock = products.filter(p => p.stock === 0);
+
+  // chart data
+  let chartData = [];
+  const now = new Date();
+  if (period === 'dia') {
+    // by hour (0-23)
+    for (let h = 0; h < 24; h++) {
+      const os = orders.filter(o => new Date(o.createdAt).getHours() === h);
+      chartData.push({ label: `${h}h`, revenue: os.reduce((s,o)=>s+o.total,0), count: os.length });
+    }
+  } else if (period === 'semana') {
+    const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now); d.setDate(now.getDate() - i);
+      const ds = d.toDateString();
+      const os = orders.filter(o => new Date(o.createdAt).toDateString() === ds);
+      chartData.push({ label: days[d.getDay()], revenue: os.reduce((s,o)=>s+o.total,0), count: os.length });
+    }
+  } else {
+    // last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const m = d.getMonth(); const y = d.getFullYear();
+      const os = DB.getOrders().filter(o => o.status==='pago' && new Date(o.createdAt).getMonth()===m && new Date(o.createdAt).getFullYear()===y);
+      chartData.push({ label: d.toLocaleString('pt-BR',{month:'short'}), revenue: os.reduce((s,o)=>s+o.total,0), count: os.length });
+    }
+  }
+
+  // top products
+  const productSales = {};
+  orders.forEach(o => (o.items||[]).forEach(item => {
+    productSales[item.productName] = (productSales[item.productName]||0) + item.quantity;
+  }));
+  const topProducts = Object.entries(productSales).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([name,qty])=>({name,qty}));
+
+  // category revenue
+  const catRevenue = {};
+  orders.forEach(o => (o.items||[]).forEach(item => {
+    const prod = products.find(p=>p.id===item.productId);
+    const cat = prod ? prod.category : 'Outros';
+    catRevenue[cat] = (catRevenue[cat]||0) + item.price * item.quantity;
+  }));
+
+  return {
+    periodOrders: orders.length,
+    periodRevenue: revenue,
+    totalProducts: products.length,
+    totalOrders: DB.getOrders().length,
+    lowStock: lowStock.length,
+    outOfStock: outOfStock.length,
+    chartData,
+    topProducts,
+    catRevenue,
+    recentOrders: [...orders].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,8)
+  };
+}
+
+window.setPeriod = function(p) {
+  currentPeriod = p;
+  ['dia','semana','mes'].forEach(x => document.getElementById('p'+x.charAt(0).toUpperCase()+x.slice(1))?.classList.toggle('active', x===p));
+  const labels = { dia: 'Hoje', semana: 'Esta semana', mes: 'Este mês' };
+  const chartSubs = { dia: 'Por hora', semana: 'Últimos 7 dias', mes: 'Últimos 6 meses' };
+  document.getElementById('periodLabel').textContent = labels[p];
+  document.getElementById('chartTitle').textContent = 'Receita: ' + labels[p];
+  document.getElementById('chartSubtitle').textContent = chartSubs[p];
+  stats = buildPeriodStats(p);
+  renderKPI();
+  renderRevenueChart();
+  renderCategoryChart();
+  renderTopProducts();
+  renderRecentOrders();
+  renderLowStock();
+};
+
+// ---- KPI ----
+function renderKPI() {
+  const pLabels = { dia: 'Hoje', semana: 'Semana', mes: 'Mês' };
+  const lbl = pLabels[currentPeriod];
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon indigo">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+      </div>
+      <div class="stat-info">
+        <div class="stat-label">Pedidos · ${lbl}</div>
+        <div class="stat-value">${stats.periodOrders}</div>
+        <div class="stat-sub">${stats.totalOrders} no total</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="stat-info">
+        <div class="stat-label">Receita · ${lbl}</div>
+        <div class="stat-value">${fmtMoney(stats.periodRevenue)}</div>
+        <div class="stat-sub">pedidos finalizados</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+      </div>
+      <div class="stat-info">
+        <div class="stat-label">Produtos Cadastrados</div>
+        <div class="stat-value">${stats.totalProducts}</div>
+        <div class="stat-sub">${stats.totalOrders} pedidos no total</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="stat-info">
+        <div class="stat-label">Estoque Baixo</div>
+        <div class="stat-value">${stats.lowStock}</div>
+        <div class="stat-sub">${stats.outOfStock} sem estoque</div>
+      </div>
+    </div>`;
+}
+
+// ---- REVENUE CHART ----
+function renderRevenueChart() {
+  if (revenueChartInst) revenueChartInst.destroy();
+  const data = stats.chartData || [];
+  const isRev = revenueChartMode === 'revenue';
+  revenueChartInst = new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.label),
+      datasets: [{
+        label: isRev ? 'Receita (R$)' : 'Pedidos',
+        data: data.map(d => isRev ? d.revenue : d.count),
+        backgroundColor: 'rgba(99,102,241,.15)',
+        borderColor: '#6366f1',
+        borderWidth: 2,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, border: { display: false } },
+        y: {
+          grid: { color: '#f1f5f9' }, border: { display: false },
+          ticks: { callback: v => isRev ? 'R$' + (v >= 1000 ? (v/1000).toFixed(1)+'k' : v) : v }
+        }
+      }
+    }
+  });
+}
+
+window.switchChart = function(mode) {
+  revenueChartMode = mode;
+  document.getElementById('tabRevenue').classList.toggle('active', mode === 'revenue');
+  document.getElementById('tabOrders').classList.toggle('active', mode === 'orders');
+  renderRevenueChart();
+};
+
+// ---- CATEGORY PIE ----
+function renderCategoryChart() {
+  if (catChartInst) catChartInst.destroy();
+  const cat = stats.catRevenue;
+  const labels = Object.keys(cat);
+  const values = Object.values(cat);
+  const colors = ['#6366f1','#22c55e','#f59e0b','#ef4444','#0284c7','#ec4899','#8b5cf6'];
+  catChartInst = new Chart(document.getElementById('categoryChart'), {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 }, usePointStyle: true } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${fmtMoney(ctx.raw)}` } }
+      },
+      cutout: '65%'
+    }
+  });
+}
+
+// ---- TOP PRODUCTS ----
+function renderTopProducts() {
+  if (topChartInst) topChartInst.destroy();
+  const top = stats.topProducts;
+  if (!top.length) { document.getElementById('topProductsChart').parentElement.innerHTML = '<p class="text-muted text-center" style="padding:60px 0">Sem dados de vendas ainda</p>'; return; }
+  topChartInst = new Chart(document.getElementById('topProductsChart'), {
+    type: 'bar',
+    data: {
+      labels: top.map(t => t.name.length > 18 ? t.name.slice(0, 18) + '…' : t.name),
+      datasets: [{
+        label: 'Qtd Vendida',
+        data: top.map(t => t.qty),
+        backgroundColor: ['#6366f1','#8b5cf6','#a78bfa','#c4b5fd','#ddd6fe','#ede9fe','#f5f3ff','#faf5ff'],
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#f1f5f9' }, border: { display: false } },
+        y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 12 } } }
+      }
+    }
+  });
+}
+
+// ---- RECENT ORDERS ----
+function renderRecentOrders() {
+  const orders = stats.recentOrders;
+  const statusLabel = { pago: ['badge-success','Pago'], aberto: ['badge-warning','Aberto'], cancelado: ['badge-gray','Cancelado'] };
+  if (!orders.length) {
+    document.getElementById('recentOrdersBody').innerHTML = `<tr><td colspan="6" class="text-center" style="padding:40px;color:var(--text-muted)">Nenhum pedido ainda</td></tr>`;
+    return;
+  }
+  document.getElementById('recentOrdersBody').innerHTML = orders.map(o => {
+    const [cls, lbl] = statusLabel[o.status] || ['badge-gray', o.status];
+    return `<tr>
+      <td>${escHtml(o.orderNumber)}</td>
+      <td>${escHtml(o.client || 'Consumidor')}</td>
+      <td>${o.items.length} item(s)</td>
+      <td><strong>${fmtMoney(o.total)}</strong></td>
+      <td><span class="badge ${cls}">${lbl}</span></td>
+      <td>${fmtDate(o.createdAt, true)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ---- LOW STOCK ----
+function renderLowStock() {
+  const products = DB.getProducts().filter(p => p.stock <= p.minStock);
+  const card = document.getElementById('lowStockCard');
+  if (!products.length) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  document.getElementById('lowStockBody').innerHTML = products.map(p => {
+    const pct = p.minStock > 0 ? Math.min(100, Math.round(p.stock / p.minStock * 100)) : 0;
+    const cls = p.stock === 0 ? 'badge-danger' : 'badge-warning';
+    const lbl = p.stock === 0 ? 'Sem estoque' : 'Estoque baixo';
+    return `<tr>
+      <td>
+        <strong>${escHtml(p.name)}</strong>
+        <div class="stock-bar ${p.stock===0?'stock-out':'stock-low'}">
+          <div class="stock-bar-fill" style="width:${pct}%"></div>
+        </div>
+      </td>
+      <td><span class="badge cat-${(p.category||'outros').toLowerCase().replace(/ç/g,'c').replace(/õ/g,'o').replace(/ã/g,'a')}">${escHtml(p.category)}</span></td>
+      <td><strong>${p.stock}</strong> ${escHtml(p.unit || 'un')}</td>
+      <td>${p.minStock} ${escHtml(p.unit || 'un')}</td>
+      <td><span class="badge ${cls}">${lbl}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// Initialize with default period (mes)
+setPeriod('mes');
+</script>
+</body>
+</html>

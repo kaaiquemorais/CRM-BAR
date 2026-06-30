@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'none'">
+<title>Login | Bar e Mercearia Godoy e Souza</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.auth-page{background:linear-gradient(135deg,#eff6ff 0%,#f5f3ff 50%,#f0fdf4 100%)}
+.auth-card{animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.version{text-align:center;margin-top:20px;font-size:12px;color:var(--text-muted)}
+.verse-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.18);padding:32px 28px;max-width:380px;width:calc(100vw - 48px);border:1px solid #ede9fe;z-index:99;animation:vpIn .38s cubic-bezier(.34,1.4,.64,1);text-align:center}
+@keyframes vpIn{from{opacity:0;transform:translate(-50%,-50%) scale(.9)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.vp-inner{display:flex;flex-direction:column;align-items:center;gap:12px}
+.vp-icon{font-size:32px}
+.vp-body{flex:1}
+.vp-text{font-size:15px;font-style:italic;color:#1e293b;line-height:1.65;font-weight:500}
+.vp-ref{font-size:12px;color:#6366f1;font-weight:700;margin-top:8px}
+.vp-close{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1;padding:0}
+</style>
+</head>
+<body>
+<div class="auth-page">
+  <div>
+    <div class="auth-card">
+      <div class="auth-logo">
+        <img src="logo.png" alt="Bar e Mercearia Godoy e Souza" style="width:140px;height:auto;margin-bottom:8px">
+      </div>
+
+      <div id="authError" class="auth-error"></div>
+
+      <form class="auth-form" id="loginForm">
+        <div class="form-group">
+          <label for="login">Login</label>
+          <input type="text" id="login" placeholder="Digite seu login" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <div class="input-wrap">
+            <input type="password" id="password" placeholder="Digite sua senha" autocomplete="current-password" required>
+            <button type="button" class="eye-btn" id="eyeBtn">
+              <svg id="eyeIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="submitBtn">Entrar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+if (AUTH.getUser()) location.href = 'pedidos.html';
+
+const VERSES = [
+  { text: '"Tudo posso naquele que me fortalece."', ref: 'Filipenses 4:13' },
+  { text: '"Porque eu sei os planos que tenho para você, planos de paz e não de mal, para lhe dar um futuro e uma esperança."', ref: 'Jeremias 29:11' },
+  { text: '"Não temas, porque eu sou contigo; eu te fortaleço, e te ajudo."', ref: 'Isaías 41:10' },
+  { text: '"Os que esperam no Senhor renovam as suas forças, sobem com asas como águias."', ref: 'Isaías 40:31' },
+  { text: '"Porque Deus não nos deu o espírito de temor, mas de poder, de amor e de equilíbrio."', ref: '2 Timóteo 1:7' },
+  { text: '"Sede fortes e corajosos. Não temais, porque o Senhor, o vosso Deus, vai convosco."', ref: 'Deuteronômio 31:6' },
+  { text: '"Confie no Senhor de todo o seu coração; reconheça-o em todos os seus caminhos, e ele endireitará as suas veredas."', ref: 'Provérbios 3:5-6' },
+  { text: '"O Senhor é a minha luz e a minha salvação; a quem temerei?"', ref: 'Salmos 27:1' },
+  { text: '"Bem-aventurado o homem que suporta a provação; porque, quando for aprovado, receberá a coroa da vida."', ref: 'Tiago 1:12' },
+  { text: '"O Senhor te abençoe e te guarde; o Senhor faça resplandecer o seu rosto sobre ti."', ref: 'Números 6:24-25' },
+];
+
+function dismissPopupAndGo(el) {
+  el.style.transition = 'opacity .3s, transform .3s';
+  el.style.opacity = '0';
+  el.style.transform = 'translate(-50%,-50%) scale(.95)';
+  setTimeout(() => { el.remove(); location.href = 'pedidos.html'; }, 280);
+}
+
+function showVersePopup() {
+  const el = document.createElement('div');
+  el.className = 'verse-popup';
+  el.style.cursor = 'pointer';
+
+  const showKaique = Math.random() < 0.12;
+
+  if (showKaique) {
+    el.style.borderColor = '#fed7aa';
+    el.innerHTML = `
+      <button class="vp-close">×</button>
+      <div class="vp-inner">
+        <div class="vp-body">
+          <div class="vp-text">Tenho muito orgulho de você. Não desistir do bar foi, com certeza, o maior presente que você já deu pra gente.</div>
+          <div class="vp-ref" style="color:#d97706">Kaique Morais</div>
+        </div>
+      </div>
+      <p style="margin-top:14px;font-size:11px;color:#94a3b8">Clique para continuar</p>`;
+  } else {
+    const v = VERSES[Math.floor(Math.random() * VERSES.length)];
+    el.innerHTML = `
+      <button class="vp-close">×</button>
+      <div class="vp-inner">
+        <div class="vp-body">
+          <div class="vp-text">${v.text}</div>
+          <div class="vp-ref">${v.ref}</div>
+        </div>
+      </div>
+      <p style="margin-top:14px;font-size:11px;color:#94a3b8">Clique para continuar</p>`;
+  }
+
+  document.body.appendChild(el);
+  el.addEventListener('click', () => dismissPopupAndGo(el));
+}
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const login = document.getElementById('login').value.trim();
+  const pass = document.getElementById('password').value;
+  const err = document.getElementById('authError');
+  const btn = document.getElementById('submitBtn');
+
+  if (AUTH.login(login, pass)) {
+    btn.textContent = 'Entrando...';
+    btn.disabled = true;
+    showVersePopup();
+  } else {
+    err.textContent = 'Login ou senha incorretos. Tente novamente.';
+    err.classList.add('show');
+    document.getElementById('password').value = '';
+    setTimeout(() => err.classList.remove('show'), 4000);
+  }
+});
+
+document.getElementById('eyeBtn').addEventListener('click', function() {
+  const inp = document.getElementById('password');
+  const showing = inp.type === 'text';
+  inp.type = showing ? 'password' : 'text';
+  document.getElementById('eyeIcon').innerHTML = showing
+    ? `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`
+    : `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+});
+</script>
+</body>
+</html>

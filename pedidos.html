@@ -203,6 +203,10 @@
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <input type="text" id="histSearch" placeholder="Buscar pedido…" oninput="renderHistory()">
               </div>
+              <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;padding:8px 14px;font-size:13px" onclick="confirmDeleteAll()">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6m4-6v6"/></svg>
+                Apagar Todos
+              </button>
             </div>
             <div id="historyList"></div>
           </div>
@@ -791,6 +795,76 @@ window.doDeleteOrder = function(id) {
   renderHistory();
   renderKanban();
   toast('Pedido apagado.', 'success');
+};
+
+window.confirmDeleteAll = function() {
+  const existing = document.getElementById('deleteAllModal');
+  if (existing) existing.remove();
+
+  const today = new Date().toDateString();
+  const toDelete = DB.getOrders()
+    .filter(o => new Date(o.createdAt).toDateString() !== today || o.status === 'cancelado')
+    .filter(o => o.status !== 'aberto');
+  if (!toDelete.length) { toast('Nenhum pedido no histórico para apagar.', 'warning'); return; }
+
+  const modal = document.createElement('div');
+  modal.id = 'deleteAllModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)';
+  modal.innerHTML = `
+    <div style="background:var(--card);border-radius:16px;padding:28px;max-width:380px;width:100%;box-shadow:0 20px 48px rgba(0,0,0,.2);font-family:inherit">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="width:52px;height:52px;background:#fee2e2;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
+          <svg fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24" width="26" height="26"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6m4-6v6"/></svg>
+        </div>
+        <h3 style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">Apagar todo o histórico?</h3>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Esta ação vai remover <strong>${toDelete.length} pedido(s)</strong> do histórico.</p>
+        <p style="font-size:12px;color:#dc2626;font-weight:500;margin-bottom:20px">Não pode ser desfeita.</p>
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">Confirme sua senha para continuar</label>
+        <input type="password" id="deleteAllPass" placeholder="Sua senha"
+          style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);background:var(--card);outline:none;font-family:inherit;box-sizing:border-box"
+          onkeydown="if(event.key==='Enter')doDeleteAll()">
+        <div id="deleteAllErr" style="color:#dc2626;font-size:12px;margin-top:6px;display:none">Senha incorreta. Tente novamente.</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="document.getElementById('deleteAllModal').remove()"
+          style="flex:1;padding:11px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+          Cancelar
+        </button>
+        <button onclick="doDeleteAll()"
+          style="flex:1;padding:11px;background:#dc2626;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
+          Apagar Tudo
+        </button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  setTimeout(() => document.getElementById('deleteAllPass')?.focus(), 100);
+};
+
+window.doDeleteAll = function() {
+  const pass = document.getElementById('deleteAllPass')?.value || '';
+  const user = AUTH.getUser();
+  const valid = AUTH.USERS.some(u => u.login === user?.login && u.password === pass);
+  if (!valid) {
+    const err = document.getElementById('deleteAllErr');
+    if (err) err.style.display = 'block';
+    if (document.getElementById('deleteAllPass')) document.getElementById('deleteAllPass').value = '';
+    return;
+  }
+
+  const today = new Date().toDateString();
+  const toKeep = DB.getOrders().filter(o =>
+    (new Date(o.createdAt).toDateString() === today && o.status !== 'cancelado') ||
+    o.status === 'aberto'
+  );
+  DB.saveOrders(toKeep);
+  document.getElementById('deleteAllModal').remove();
+  renderHistory();
+  renderKanban();
+  toast('Histórico apagado com sucesso.', 'success');
 };
 
 // ===== FAVORITES =====

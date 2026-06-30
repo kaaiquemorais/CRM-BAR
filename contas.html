@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'none'">
+<title>Contas | Bar e Mercearia Godoy e Souza</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="stylesheet" href="css/style.css">
+<style>
+/* ===== CALENDÁRIO ===== */
+.cal-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--primary);color:#fff}
+.cal-header h3{font-size:16px;font-weight:700}
+.cal-nav{background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.cal-nav:hover{background:rgba(255,255,255,.35)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-dow{text-align:center;padding:10px 4px 8px;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.cal-day{min-height:72px;padding:6px;border-right:1px solid var(--border-light);border-bottom:1px solid var(--border-light);cursor:pointer;transition:background .1s;position:relative}
+.cal-day:hover{background:var(--primary-lighter)}
+.cal-day.other-month{background:var(--bg);opacity:.5}
+.cal-day.today .cal-day-num{background:var(--primary);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
+.cal-day.selected{background:var(--primary-lighter);outline:2px solid var(--primary)}
+.cal-day-num{font-size:13px;font-weight:600;color:var(--text);width:26px;height:26px;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.cal-dots{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}
+.cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cal-dot.pendente{background:#f59e0b}
+.cal-dot.vencido{background:#ef4444}
+.cal-dot.pago{background:#22c55e}
+.cal-bill-pill{font-size:10px;padding:1px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-top:2px;font-weight:600}
+.cal-bill-pill.pendente{background:#fef3c7;color:#92400e}
+.cal-bill-pill.vencido{background:#fee2e2;color:#dc2626}
+.cal-bill-pill.pago{background:#dcfce7;color:#166534}
+
+/* ===== CONTAS LISTA ===== */
+.bill-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:box-shadow .15s}
+.bill-card:hover{box-shadow:var(--shadow-md)}
+.bill-card.vencido{border-left:4px solid #ef4444}
+.bill-card.pendente{border-left:4px solid #f59e0b}
+.bill-card.pago{border-left:4px solid #22c55e;opacity:.75}
+.bill-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.bill-info{flex:1;min-width:0}
+.bill-name{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bill-meta{font-size:12px;color:var(--text-muted);margin-top:2px}
+.bill-amount{font-size:18px;font-weight:800;color:var(--text);white-space:nowrap;text-align:right}
+.bill-due{font-size:11px;font-weight:600;text-align:right;margin-top:2px;white-space:nowrap}
+.bill-due.vencido{color:#dc2626}
+.bill-due.pendente{color:#d97706}
+.bill-due.pago{color:#16a34a}
+.bill-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* ===== RESUMO DO DIA ===== */
+.day-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.day-panel-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.day-panel-empty{text-align:center;padding:24px 0;color:var(--text-muted);font-size:13px}
+
+/* ===== TABS ===== */
+.bill-tabs{display:flex;gap:4px;background:var(--bg);border-radius:var(--radius-sm);padding:4px;margin-bottom:20px;width:fit-content}
+.bill-tab{padding:8px 20px;border-radius:6px;border:none;background:none;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:all .15s;font-family:inherit}
+.bill-tab.active{background:var(--card);color:var(--primary);box-shadow:var(--shadow)}
+
+/* ===== MODAL ===== */
+.bill-modal-overlay{position:fixed;inset:0;z-index:999;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.bill-modal{background:var(--card);border-radius:16px;padding:28px;max-width:460px;width:100%;box-shadow:0 20px 48px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto}
+.bill-modal h3{font-size:17px;font-weight:700;color:var(--text);margin-bottom:20px}
+.bill-modal .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bill-modal .form-group{margin-bottom:14px}
+.bill-modal label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.bill-modal input,.bill-modal select,.bill-modal textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);background:var(--card);outline:none;font-family:inherit;transition:border-color .15s}
+.bill-modal input:focus,.bill-modal select:focus,.bill-modal textarea:focus{border-color:var(--primary)}
+.bill-modal textarea{resize:vertical;min-height:60px}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions button{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:background .15s}
+.modal-btn-cancel{background:var(--bg);color:var(--text);border:1px solid var(--border) !important}
+.modal-btn-save{background:var(--primary);color:#fff}
+.modal-btn-save:hover{background:var(--primary-dark)}
+
+/* ===== STAT CARDS ===== */
+.contas-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:900px){.contas-stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="navContainer"></div>
+<div class="layout">
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1>Contas</h1>
+        <p>Contas a pagar e pagas</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="openBillModal()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nova Conta
+        </button>
+      </div>
+    </header>
+
+    <main class="page-content">
+
+      <!-- Stats -->
+      <div class="contas-stats" id="contasStats"></div>
+
+      <!-- Calendar + Day panel -->
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;margin-bottom:24px;align-items:start">
+        <div class="cal-wrap">
+          <div class="cal-header">
+            <button class="cal-nav" onclick="changeMonth(-1)">&#8249;</button>
+            <h3 id="calTitle"></h3>
+            <button class="cal-nav" onclick="changeMonth(1)">&#8250;</button>
+          </div>
+          <div class="cal-grid" id="calDows"></div>
+          <div class="cal-grid" id="calDays"></div>
+        </div>
+
+        <div class="day-panel">
+          <div class="day-panel-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="dayPanelTitle">Selecione um dia</span>
+          </div>
+          <div id="dayPanelContent"><div class="day-panel-empty">Clique em um dia no calendário para ver as contas.</div></div>
+        </div>
+      </div>
+
+      <!-- Tabs + List -->
+      <div class="card">
+        <div class="card-header" style="flex-wrap:wrap;gap:12px">
+          <div>
+            <h3>Lista de Contas</h3>
+            <p id="listSubtitle">Todas as contas</p>
+          </div>
+          <div class="search-input" style="max-width:260px">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="billSearch" placeholder="Buscar conta..." oninput="renderList()">
+          </div>
+        </div>
+        <div class="card-body" style="padding:20px">
+          <div class="bill-tabs">
+            <button class="bill-tab active" id="tabPagar" onclick="setTab('pagar')">A Pagar</button>
+            <button class="bill-tab" id="tabPagas" onclick="setTab('pagas')">Pagas</button>
+            <button class="bill-tab" id="tabTodas" onclick="setTab('todas')">Todas</button>
+          </div>
+          <div id="billList" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/nav.js"></script>
+<script>
+DB.init();
+renderNav('contas');
+
+const CAT_EMOJI = {
+  'Aluguel': '🏠', 'Energia': '⚡', 'Agua': '💧', 'Internet': '📶',
+  'Fornecedor': '📦', 'Funcionario': '👤', 'Imposto': '📋', 'Outros': '💳'
+};
+
+let calYear, calMonth, selectedDate = null, currentTab = 'pagar';
+
+function init() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  renderStats();
+  renderCalendar();
+  renderList();
+}
+
+// ===== STATS =====
+function renderStats() {
+  const bills = DB.getBills();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const now = new Date();
+  const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
+
+  const pendentes = bills.filter(b => b.status === 'pendente' && new Date(b.dueDate) >= today);
+  const vencidas  = bills.filter(b => b.status === 'pendente' && new Date(b.dueDate) < today);
+  const pagas     = bills.filter(b => b.status === 'pago' && new Date(b.paidAt || b.dueDate).getMonth() === thisMonth && new Date(b.paidAt || b.dueDate).getFullYear() === thisYear);
+  const totalPend = pendentes.reduce((s,b)=>s+b.amount,0) + vencidas.reduce((s,b)=>s+b.amount,0);
+
+  document.getElementById('contasStats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon amber"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="stat-info"><div class="stat-label">A Pagar</div><div class="stat-value">${pendentes.length}</div><div class="stat-sub">${fmtMoney(pendentes.reduce((s,b)=>s+b.amount,0))}</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="stat-info"><div class="stat-label">Vencidas</div><div class="stat-value">${vencidas.length}</div><div class="stat-sub">${fmtMoney(vencidas.reduce((s,b)=>s+b.amount,0))}</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <div class="stat-info"><div class="stat-label">Pagas (mês)</div><div class="stat-value">${pagas.length}</div><div class="stat-sub">${fmtMoney(pagas.reduce((s,b)=>s+b.amount,0))}</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="stat-info"><div class="stat-label">Total em Aberto</div><div class="stat-value">${fmtMoney(totalPend)}</div><div class="stat-sub">${vencidas.length > 0 ? vencidas.length + ' vencida(s)' : 'em dia'}</div></div>
+    </div>`;
+}
+
+// ===== CALENDAR =====
+function changeMonth(d) { calMonth += d; if (calMonth > 11) { calMonth=0; calYear++; } if (calMonth < 0) { calMonth=11; calYear--; } renderCalendar(); }
+
+function renderCalendar() {
+  const months = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('calTitle').textContent = `${months[calMonth]} ${calYear}`;
+
+  const dows = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+  document.getElementById('calDows').innerHTML = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+  const bills = DB.getBills();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const first = new Date(calYear, calMonth, 1);
+  const last  = new Date(calYear, calMonth+1, 0);
+  const startDow = first.getDay();
+
+  // group bills by date
+  const byDate = {};
+  bills.forEach(b => {
+    const d = b.dueDate ? b.dueDate.slice(0,10) : null;
+    if (!d) return;
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push(b);
+  });
+
+  let html = '';
+  // previous month padding
+  for (let i = 0; i < startDow; i++) {
+    const d = new Date(calYear, calMonth, -startDow + i + 1);
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${d.getDate()}</div></div>`;
+  }
+  for (let day = 1; day <= last.getDate(); day++) {
+    const dt = new Date(calYear, calMonth, day);
+    const dtStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday = dt.getTime() === today.getTime();
+    const isSelected = selectedDate === dtStr;
+    const dayBills = byDate[dtStr] || [];
+
+    const statusOf = b => {
+      if (b.status === 'pago') return 'pago';
+      return dt < today ? 'vencido' : 'pendente';
+    };
+
+    const pills = dayBills.slice(0,2).map(b => {
+      const s = statusOf(b);
+      return `<div class="cal-bill-pill ${s}">${escHtml(b.name.length>12?b.name.slice(0,11)+'…':b.name)}</div>`;
+    }).join('');
+    const more = dayBills.length > 2 ? `<div style="font-size:9px;color:var(--text-muted);margin-top:2px">+${dayBills.length-2} mais</div>` : '';
+
+    html += `<div class="cal-day${isToday?' today':''}${isSelected?' selected':''}" onclick="selectDate('${dtStr}')">
+      <div class="cal-day-num">${day}</div>
+      ${pills}${more}
+    </div>`;
+  }
+  // fill remaining cells
+  const remaining = (7 - (startDow + last.getDate()) % 7) % 7;
+  for (let i = 1; i <= remaining; i++) html += `<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+
+  document.getElementById('calDays').innerHTML = html;
+}
+
+function selectDate(dtStr) {
+  selectedDate = dtStr;
+  renderCalendar();
+  renderDayPanel(dtStr);
+}
+
+function renderDayPanel(dtStr) {
+  const [y,m,d] = dtStr.split('-').map(Number);
+  const label = new Date(y, m-1, d).toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
+  document.getElementById('dayPanelTitle').textContent = label;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dt = new Date(y, m-1, d);
+  const bills = DB.getBills().filter(b => b.dueDate && b.dueDate.slice(0,10) === dtStr);
+
+  if (!bills.length) {
+    document.getElementById('dayPanelContent').innerHTML = `<div class="day-panel-empty">Nenhuma conta neste dia.<br><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="openBillModal(null,'${dtStr}')">+ Adicionar</button></div>`;
+    return;
+  }
+
+  document.getElementById('dayPanelContent').innerHTML = bills.map(b => {
+    const s = b.status === 'pago' ? 'pago' : dt < today ? 'vencido' : 'pendente';
+    const lbl = { pago:'Paga', vencido:'Vencida', pendente:'Pendente' }[s];
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--border-light)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${escHtml(b.name)}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${escHtml(b.category||'Outros')}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:15px;font-weight:800;color:var(--text)">${fmtMoney(b.amount)}</div>
+          <span class="badge ${s==='pago'?'badge-success':s==='vencido'?'badge-danger':'badge-warning'}" style="font-size:10px">${lbl}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        ${b.status!=='pago'
+          ? `<button class="btn btn-sm" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0;font-size:11px;padding:4px 10px" onclick="markPaid(${b.id})">Marcar Paga</button>`
+          : `<button class="btn btn-sm" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border);font-size:11px;padding:4px 10px" onclick="markPending(${b.id})">Desfazer</button>`
+        }
+        <button class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px" onclick="openBillModal(${b.id})">Editar</button>
+        <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;font-size:11px;padding:4px 10px" onclick="deleteBill(${b.id})">Apagar</button>
+      </div>
+    </div>`;
+  }).join('') + `<button class="btn btn-primary btn-sm" style="width:100%;margin-top:12px" onclick="openBillModal(null,'${dtStr}')">+ Nova conta neste dia</button>`;
+}
+
+// ===== LIST =====
+function setTab(t) {
+  currentTab = t;
+  ['pagar','pagas','todas'].forEach(x => document.getElementById('tab'+x.charAt(0).toUpperCase()+x.slice(1))?.classList.toggle('active', x===t));
+  const labels = { pagar:'Contas a pagar e vencidas', pagas:'Contas ja pagas', todas:'Todas as contas' };
+  document.getElementById('listSubtitle').textContent = labels[t];
+  renderList();
+}
+
+function renderList() {
+  const q = (document.getElementById('billSearch')?.value||'').toLowerCase();
+  const today = new Date(); today.setHours(0,0,0,0);
+  let bills = DB.getBills();
+
+  if (currentTab === 'pagar') bills = bills.filter(b => b.status === 'pendente');
+  else if (currentTab === 'pagas') bills = bills.filter(b => b.status === 'pago');
+
+  if (q) bills = bills.filter(b => b.name.toLowerCase().includes(q) || (b.category||'').toLowerCase().includes(q) || (b.notes||'').toLowerCase().includes(q));
+
+  bills.sort((a,b) => {
+    if (currentTab === 'pagas') return new Date(b.paidAt||b.dueDate) - new Date(a.paidAt||a.dueDate);
+    return new Date(a.dueDate) - new Date(b.dueDate);
+  });
+
+  if (!bills.length) {
+    document.getElementById('billList').innerHTML = `<div class="empty-state" style="padding:40px"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="40" height="40"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><h3>Nenhuma conta encontrada</h3></div>`;
+    return;
+  }
+
+  document.getElementById('billList').innerHTML = bills.map(b => {
+    const dt = new Date(b.dueDate+'T00:00:00');
+    const isPast = dt < today;
+    const s = b.status === 'pago' ? 'pago' : isPast ? 'vencido' : 'pendente';
+    const dueLabel = b.status === 'pago'
+      ? 'Paga em ' + new Date(b.paidAt).toLocaleDateString('pt-BR')
+      : isPast
+        ? 'Venceu em ' + dt.toLocaleDateString('pt-BR')
+        : 'Vence em ' + dt.toLocaleDateString('pt-BR');
+    const emoji = CAT_EMOJI[b.category] || '💳';
+    const bgIcon = { pago:'#dcfce7', vencido:'#fee2e2', pendente:'#fef3c7' }[s];
+
+    return `<div class="bill-card ${s}">
+      <div class="bill-icon" style="background:${bgIcon}">${emoji}</div>
+      <div class="bill-info">
+        <div class="bill-name">${escHtml(b.name)}</div>
+        <div class="bill-meta">${escHtml(b.category||'Outros')}${b.notes?` · ${escHtml(b.notes.slice(0,40))}`:''}</div>
+      </div>
+      <div>
+        <div class="bill-amount">${fmtMoney(b.amount)}</div>
+        <div class="bill-due ${s}">${dueLabel}</div>
+      </div>
+      <div class="bill-actions">
+        ${b.status!=='pago'
+          ? `<button class="btn btn-sm" style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0;padding:6px 10px;font-size:12px" onclick="markPaid(${b.id})" title="Marcar como paga">
+              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="13" height="13"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>`
+          : `<button class="btn btn-sm" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border);padding:6px 10px;font-size:12px" onclick="markPending(${b.id})" title="Desfazer pagamento">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>`
+        }
+        <button class="btn btn-secondary btn-sm" style="padding:6px 10px;font-size:12px" onclick="openBillModal(${b.id})" title="Editar">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;padding:6px 10px;font-size:12px" onclick="deleteBill(${b.id})" title="Apagar">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== ACTIONS =====
+function markPaid(id) {
+  DB.markBillPaid(id);
+  refresh();
+  toast('Conta marcada como paga!', 'success');
+}
+function markPending(id) {
+  DB.markBillPending(id);
+  refresh();
+  toast('Conta reaberta.', 'warning');
+}
+function deleteBill(id) {
+  const b = DB.getBills().find(x => x.id === id);
+  if (!b) return;
+  if (!confirm(`Apagar "${b.name}"? Esta acao nao pode ser desfeita.`)) return;
+  DB.deleteBill(id);
+  refresh();
+  toast('Conta apagada.', 'success');
+}
+function refresh() {
+  renderStats();
+  renderCalendar();
+  renderList();
+  if (selectedDate) renderDayPanel(selectedDate);
+}
+
+// ===== MODAL =====
+function openBillModal(id, defaultDate) {
+  const b = id ? DB.getBills().find(x => x.id === id) : null;
+  const existing = document.getElementById('billModalOverlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'billModalOverlay';
+  overlay.className = 'bill-modal-overlay';
+
+  const today = defaultDate || new Date().toISOString().slice(0,10);
+
+  overlay.innerHTML = `
+    <div class="bill-modal">
+      <h3>${b ? 'Editar Conta' : 'Nova Conta'}</h3>
+
+      <div class="form-group">
+        <label>Descricao *</label>
+        <input type="text" id="bName" value="${b ? escHtml(b.name) : ''}" placeholder="Ex: Conta de luz, Aluguel..." maxlength="120">
+      </div>
+
+      <div class="bill-modal form-row">
+        <div class="form-group">
+          <label>Valor (R$) *</label>
+          <input type="number" id="bAmount" value="${b ? b.amount : ''}" placeholder="0,00" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Vencimento *</label>
+          <input type="date" id="bDueDate" value="${b ? b.dueDate : today}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="bCategory">
+          ${['Aluguel','Energia','Agua','Internet','Fornecedor','Funcionario','Imposto','Outros'].map(c =>
+            `<option value="${c}" ${b?.category===c?'selected':''}>${CAT_EMOJI[c]||''} ${c}</option>`
+          ).join('')}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Observacoes</label>
+        <textarea id="bNotes" placeholder="Informacoes adicionais..." maxlength="300">${b ? escHtml(b.notes||'') : ''}</textarea>
+      </div>
+
+      ${b ? `<div class="form-group">
+        <label>Status</label>
+        <select id="bStatus">
+          <option value="pendente" ${b.status==='pendente'?'selected':''}>Pendente</option>
+          <option value="pago" ${b.status==='pago'?'selected':''}>Pago</option>
+        </select>
+      </div>` : ''}
+
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" onclick="document.getElementById('billModalOverlay').remove()">Cancelar</button>
+        <button class="modal-btn-save" onclick="saveBill(${id||'null'})">Salvar</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  setTimeout(() => document.getElementById('bName')?.focus(), 80);
+}
+
+function saveBill(id) {
+  const name    = document.getElementById('bName').value.trim();
+  const amount  = parseFloat(document.getElementById('bAmount').value);
+  const dueDate = document.getElementById('bDueDate').value;
+  const category= document.getElementById('bCategory').value;
+  const notes   = document.getElementById('bNotes').value.trim();
+
+  if (!name)       { toast('Informe a descricao da conta.', 'warning'); return; }
+  if (!amount || amount <= 0) { toast('Informe um valor valido.', 'warning'); return; }
+  if (!dueDate)    { toast('Informe a data de vencimento.', 'warning'); return; }
+
+  if (id) {
+    const data = { name, amount, dueDate, category, notes };
+    const statusEl = document.getElementById('bStatus');
+    if (statusEl) {
+      data.status = statusEl.value;
+      if (statusEl.value === 'pago' && DB.getBills().find(b=>b.id===id)?.status !== 'pago') data.paidAt = new Date().toISOString();
+      if (statusEl.value === 'pendente') data.paidAt = null;
+    }
+    DB.updateBill(id, data);
+    toast('Conta atualizada!', 'success');
+  } else {
+    DB.addBill({ name, amount, dueDate, category, notes });
+    toast('Conta adicionada!', 'success');
+  }
+
+  document.getElementById('billModalOverlay').remove();
+  refresh();
+  if (dueDate) {
+    const [y,m] = dueDate.split('-').map(Number);
+    calYear = y; calMonth = m-1;
+    selectDate(dueDate);
+    renderCalendar();
+  }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -25,14 +25,13 @@ publishOrigin = "default"
 [build.services]
 
 [[redirects]]
-from = "/*"
+from = "/"
 to = "/login.html"
-status = 200.0
+status = 302.0
 force = false
 
 [redirects.query]
 
 [redirects.conditions]
-Role = ["anonymous"]
 
 [redirects.headers]

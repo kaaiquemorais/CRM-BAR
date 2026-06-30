@@ -112,6 +112,39 @@ const DB = {
   },
   deleteOrder(id) { this.saveOrders(this.getOrders().filter(o => o.id !== id)) },
 
+  // ---- BILLS (Contas) ----
+  getBills() { return this._get('crm_bills') || [] },
+  saveBills(arr) { this._set('crm_bills', arr) },
+  addBill(b) {
+    const arr = this.getBills();
+    b.id = this.nextId();
+    b.name     = sanitize(b.name, 120);
+    b.category = sanitize(b.category, 60);
+    b.notes    = sanitize(b.notes, 300);
+    b.createdAt = new Date().toISOString();
+    b.status = 'pendente';
+    b.paidAt = null;
+    arr.push(b);
+    this.saveBills(arr);
+    return b;
+  },
+  updateBill(id, data) {
+    if (data.name)     data.name     = sanitize(data.name, 120);
+    if (data.category) data.category = sanitize(data.category, 60);
+    if (data.notes)    data.notes    = sanitize(data.notes, 300);
+    const arr = this.getBills().map(b => b.id === id ? { ...b, ...data, id } : b);
+    this.saveBills(arr);
+  },
+  markBillPaid(id) {
+    const arr = this.getBills().map(b => b.id === id ? { ...b, status: 'pago', paidAt: new Date().toISOString() } : b);
+    this.saveBills(arr);
+  },
+  markBillPending(id) {
+    const arr = this.getBills().map(b => b.id === id ? { ...b, status: 'pendente', paidAt: null } : b);
+    this.saveBills(arr);
+  },
+  deleteBill(id) { this.saveBills(this.getBills().filter(b => b.id !== id)) },
+
   // ---- MOVEMENTS ----
   getMovements() { return this._get(this.KEYS.movements) || [] },
   addMovement(m) {

@@ -390,3 +390,102 @@ const svgCheck = `<svg fill="none" stroke="currentColor" stroke-width="2" viewBo
 const svgX = `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>`;
 const svgWarn = `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>`;
 const svgInfo = `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>`;
+
+// ---- Seed de produtos (versão 2) ----
+// Quando a versão do seed mudar, os produtos são substituídos automaticamente.
+(function seedProdutos() {
+  const SEED_VERSION = '2';
+  if (localStorage.getItem('crm_seed_v') === SEED_VERSION) return;
+
+  const now = new Date().toISOString();
+  let id = 1001;
+  const produtos = [
+    // BEBIDAS
+    { name:'Refrigerante It Laranja – 2 L',               category:'Bebidas', emoji:'🥤', unit:'un'  },
+    { name:'Refrigerante It Cola – 2 L',                  category:'Bebidas', emoji:'🥤', unit:'un'  },
+    { name:'Refrigerante It Guaraná Zero – 2 L',          category:'Bebidas', emoji:'🥤', unit:'un'  },
+    { name:'Refrigerante It Limão – 2 L',                 category:'Bebidas', emoji:'🥤', unit:'un'  },
+    { name:'Refrigerante Mantovani Guaraná – 2 L',        category:'Bebidas', emoji:'🥤', unit:'un'  },
+    { name:'Leite Líder – 1 L',                           category:'Bebidas', emoji:'🥛', unit:'un'  },
+    { name:'Água Mineral Lindóia – 500 ml',               category:'Bebidas', emoji:'💧', unit:'un'  },
+    // COMIDAS – básicos/mercearia
+    { name:'Café Toninho Extra Forte – 500 g',            category:'Comidas', emoji:'☕', unit:'pct' },
+    { name:'Café Toninho Tradicional – 500 g',            category:'Comidas', emoji:'☕', unit:'pct' },
+    { name:'Molho de Tomate Tarantella Tradicional',      category:'Comidas', emoji:'🍅', unit:'un'  },
+    { name:'Miojo Turma da Mônica',                       category:'Comidas', emoji:'🍜', unit:'pct' },
+    { name:'Atum Ralado Coqueiro',                        category:'Comidas', emoji:'🐟', unit:'un'  },
+    { name:'Maionese Hellmann\'s – 500 g',                category:'Comidas', emoji:'🫙', unit:'un'  },
+    { name:'Macarrão Camil Penne – 500 g',                category:'Comidas', emoji:'🍝', unit:'pct' },
+    { name:'Macarrão Camil Parafuso – 500 g',             category:'Comidas', emoji:'🍝', unit:'pct' },
+    { name:'Macarrão Da Roz Ave Maria – 500 g',           category:'Comidas', emoji:'🍝', unit:'pct' },
+    { name:'Macarrão Da Roz Padre Nosso – 500 g',         category:'Comidas', emoji:'🍝', unit:'pct' },
+    { name:'Macarrão Da Roz Espaguete – 500 g',           category:'Comidas', emoji:'🍝', unit:'pct' },
+    { name:'Farinha de Trigo Anaconda Premium – 1 kg',    category:'Comidas', emoji:'🌾', unit:'pct' },
+    { name:'Óleo Lisa – 900 ml',                          category:'Comidas', emoji:'🫙', unit:'un'  },
+    { name:'SaborAmi – 1 kg',                             category:'Comidas', emoji:'🧂', unit:'pct' },
+    { name:'SaborAmi – 300 g',                            category:'Comidas', emoji:'🧂', unit:'pct' },
+    { name:'Vinagre Fortaleza – 750 ml',                  category:'Comidas', emoji:'🫙', unit:'un'  },
+    { name:'Feijoada em Lata Bordon – 830 g',             category:'Comidas', emoji:'🫘', unit:'un'  },
+    { name:'Feijoada em Lata Bordon – 430 g',             category:'Comidas', emoji:'🫘', unit:'un'  },
+    { name:'Sal Marfim – 1 kg',                           category:'Comidas', emoji:'🧂', unit:'pct' },
+    { name:'Sal Grosso Marfim – 1 kg',                    category:'Comidas', emoji:'🧂', unit:'pct' },
+    { name:'Feijão Carioca Rosalito – 1 kg',              category:'Comidas', emoji:'🫘', unit:'pct' },
+    { name:'Feijão Preto Rosalito – 1 kg',                category:'Comidas', emoji:'🫘', unit:'pct' },
+    { name:'Arroz Supereco – 5 kg',                       category:'Comidas', emoji:'🍚', unit:'pct' },
+    { name:'Arroz Pateko – 5 kg',                         category:'Comidas', emoji:'🍚', unit:'pct' },
+    { name:'Toddy – 370 g',                               category:'Comidas', emoji:'☕', unit:'pct' },
+    { name:'Açúcar Cristal Colombo – 1 kg',               category:'Comidas', emoji:'🍬', unit:'pct' },
+    { name:'Açúcar Cristal Colombo – 5 kg',               category:'Comidas', emoji:'🍬', unit:'pct' },
+    { name:'Farinha de Milho Amarela PQ Alimentos – 1 kg',category:'Comidas', emoji:'🌽', unit:'pct' },
+    { name:'Pó para Fermento Royal – 100 g',              category:'Comidas', emoji:'🍞', unit:'un'  },
+    { name:'Creme de Leite Piracanjuba – 200 g',          category:'Comidas', emoji:'🥛', unit:'un'  },
+    { name:'Leite Condensado Campos do Jordão – 395 g',   category:'Comidas', emoji:'🥛', unit:'un'  },
+    { name:'Leite Condensado Triângulo – 395 g',          category:'Comidas', emoji:'🥛', unit:'un'  },
+    { name:'Leite Condensado Moça – 395 g',               category:'Comidas', emoji:'🥛', unit:'un'  },
+    { name:'Seleta de Legumes – 280 g',                   category:'Comidas', emoji:'🥕', unit:'un'  },
+    { name:'Milho Verde – 280 g',                         category:'Comidas', emoji:'🌽', unit:'un'  },
+    { name:'Ervilha – 280 g',                             category:'Comidas', emoji:'🫛', unit:'un'  },
+    // COMIDAS – snacks
+    { name:'Batata Chips Fritop Original – 50 g',         category:'Comidas', emoji:'🥔', unit:'un'  },
+    { name:'Batata Palha Original Fritop – 100 g',        category:'Comidas', emoji:'🥔', unit:'un'  },
+    { name:'Salgadinho Pingolitos Bacon',                 category:'Comidas', emoji:'🍿', unit:'un'  },
+    { name:'Salgadinho Pingolitos Cebola',                category:'Comidas', emoji:'🍿', unit:'un'  },
+    { name:'Salgadinho Pingolitos Presunto',              category:'Comidas', emoji:'🍿', unit:'un'  },
+    { name:'Salgadinho Pingolitos Queijo',                category:'Comidas', emoji:'🍿', unit:'un'  },
+    { name:'Salgadinho Pingolitos Cebola e Salsa',        category:'Comidas', emoji:'🍿', unit:'un'  },
+    { name:'Salgadinho Pingolitos Requeijão',             category:'Comidas', emoji:'🍿', unit:'un'  },
+    { name:'Salgadinho Pingolitos Churrasco',             category:'Comidas', emoji:'🍿', unit:'un'  },
+    { name:'Salgadinho Corinho Fritop',                   category:'Comidas', emoji:'🍿', unit:'un'  },
+    { name:'Pipoca Doce',                                 category:'Comidas', emoji:'🍿', unit:'un'  },
+    // COMIDAS – salgados prontos
+    { name:'Pastel de Carne',                             category:'Comidas', emoji:'🥟', unit:'un'  },
+    { name:'Pastel de Frango',                            category:'Comidas', emoji:'🥟', unit:'un'  },
+    { name:'Pastel de Presunto e Queijo',                 category:'Comidas', emoji:'🥟', unit:'un'  },
+    { name:'Pastel de Queijo',                            category:'Comidas', emoji:'🥟', unit:'un'  },
+    { name:'Espetinho de Frango',                         category:'Comidas', emoji:'🍢', unit:'un'  },
+    { name:'Bisteca Empanada',                            category:'Comidas', emoji:'🥩', unit:'un'  },
+    { name:'Coxinha',                                     category:'Comidas', emoji:'🍗', unit:'un'  },
+    { name:'Risole de Presunto e Queijo',                 category:'Comidas', emoji:'🥟', unit:'un'  },
+    { name:'Risole de Carne',                             category:'Comidas', emoji:'🥟', unit:'un'  },
+    { name:'Salsicha Empanada',                           category:'Comidas', emoji:'🌭', unit:'un'  },
+    // OUTROS – limpeza e higiene
+    { name:'Papel Toalha Sorella – 2 rolos',              category:'Outros',  emoji:'🧻', unit:'pct' },
+    { name:'Papel Higiênico Fofinho – Folha Dupla',       category:'Outros',  emoji:'🧻', unit:'pct' },
+    { name:'Papel Higiênico Fofinho',                     category:'Outros',  emoji:'🧻', unit:'pct' },
+    { name:'Sabão em Pó Omo – 700 g',                    category:'Outros',  emoji:'🧺', unit:'un'  },
+    { name:'Sabão em Pó Triex – 800 g',                  category:'Outros',  emoji:'🧺', unit:'un'  },
+    { name:'Água Sanitária Suprema – 1 L',                category:'Outros',  emoji:'🧴', unit:'un'  },
+    { name:'Amaciante Suprema – 2 L',                    category:'Outros',  emoji:'🧴', unit:'un'  },
+    { name:'Amaciante Concentrado Uau – 500 ml',          category:'Outros',  emoji:'🧴', unit:'un'  },
+    { name:'Desinfetante Uau – 500 ml',                   category:'Outros',  emoji:'🧴', unit:'un'  },
+    { name:'Detergente Suprema – 500 ml',                 category:'Outros',  emoji:'🧴', unit:'un'  },
+    { name:'Pasta de Dente Sorriso – 70 g',               category:'Outros',  emoji:'🪥', unit:'un'  },
+    { name:'Gilete Belém – 8 unidades',                   category:'Outros',  emoji:'🪒', unit:'cx'  },
+    { name:'Álcool Sulmar – 500 ml',                      category:'Outros',  emoji:'🧴', unit:'un'  },
+    { name:'Velas Belém – 8 unidades',                    category:'Outros',  emoji:'🕯️', unit:'cx'  },
+  ].map(p => ({ ...p, id: id++, price: 0, cost: 0, stock: 0, minStock: 5, createdAt: now }));
+
+  localStorage.setItem('crm_products', JSON.stringify(produtos));
+  localStorage.setItem('crm_nextid',   JSON.stringify(id));
+  localStorage.setItem('crm_seed_v',   SEED_VERSION);
+})();

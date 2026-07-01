@@ -89,70 +89,89 @@ function _loadXLSX(cb) {
 
 function _gerarBackupExcel() {
   try {
-    const d   = new Date();
-    const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const wb  = XLSX.utils.book_new();
-
-    // 1. Estoque
-    const prods = (JSON.parse(localStorage.getItem('crm_products')||'[]'));
-    const wsEst = XLSX.utils.aoa_to_sheet([
-      ['Nome','Categoria','Preço (R$)','Estoque','Estoque Mín.'],
-      ...prods.map(p => [p.name, p.category, p.price||0, p.stock||0, p.minStock||0])
-    ]);
-    XLSX.utils.book_append_sheet(wb, wsEst, 'Estoque');
-
-    // 2. Pedidos do dia
-    const allOrders = (JSON.parse(localStorage.getItem('crm_orders')||'[]'));
+    const d    = new Date();
     const hoje = d.toISOString().slice(0,10);
-    const pedHoje = allOrders.filter(o => (o.createdAt||'').slice(0,10) === hoje);
+    const dFmt = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    const dStr = hoje;
+    const wb   = XLSX.utils.book_new();
+
+    const allOrders = JSON.parse(localStorage.getItem('crm_orders') || '[]');
+    const pedHoje   = allOrders.filter(o => (o.createdAt||'').slice(0,10) === hoje);
+
+    const orderTotal = o => (o.items||[]).reduce((s,i) => s + (parseFloat(i.price)||0) * (parseInt(i.quantity)||1), 0);
+
+    const totalDia    = pedHoje.reduce((s,o) => s + orderTotal(o), 0);
+    const totalPagos  = pedHoje.filter(o=>o.status==='pago').reduce((s,o) => s + orderTotal(o), 0);
+    const totalAberto = pedHoje.filter(o=>o.status!=='pago').reduce((s,o) => s + orderTotal(o), 0);
+
+    // ── Aba 1: Resumo do Dia ─────────────────────────────────
+    const wsResumo = XLSX.utils.aoa_to_sheet([
+      ['RELATÓRIO DE VENDAS DO DIA'],
+      ['Data:', dFmt],
+      ['Gerado às:', d.toLocaleTimeString('pt-BR')],
+      [],
+      ['RESUMO FINANCEIRO'],
+      ['Total faturado no dia (R$)',          totalDia.toFixed(2)],
+      ['Total de pedidos pagos (R$)',          totalPagos.toFixed(2)],
+      ['Total de pedidos em aberto (R$)',      totalAberto.toFixed(2)],
+      [],
+      ['PEDIDOS'],
+      ['Total de pedidos',          pedHoje.length],
+      ['Pedidos pagos',             pedHoje.filter(o=>o.status==='pago').length],
+      ['Pedidos em aberto',         pedHoje.filter(o=>o.status!=='pago').length],
+    ]);
+    XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo do Dia');
+
+    // ── Aba 2: Pedidos do Dia ────────────────────────────────
+    const linhasPed = [];
+    pedHoje.forEach(o => {
+      const tot = orderTotal(o);
+      linhasPed.push([
+        o.orderNumber || o.id,
+        o.client || '—',
+        o.status === 'pago' ? 'Pago' : 'Em aberto',
+        tot.toFixed(2),
+        (o.createdAt||'').slice(0,16).replace('T',' '),
+      ]);
+      // sub-linhas com itens do pedido
+      (o.items||[]).forEach(i => {
+        linhasPed.push([
+          '',
+          `  → ${i.name}`,
+          `${i.quantity}x`,
+          (parseFloat(i.price)||0).toFixed(2),
+          '',
+        ]);
+      });
+    });
     const wsPed = XLSX.utils.aoa_to_sheet([
-      ['Pedido','Cliente','Status','Total (R$)','Data'],
-      ...pedHoje.map(o => [
-        o.orderNumber||o.id,
-        o.client||'—',
-        o.status,
-        (o.items||[]).reduce((s,i)=>s+(i.price||0)*(i.quantity||1),0).toFixed(2),
-        (o.createdAt||'').slice(0,16).replace('T',' ')
-      ])
+      ['Pedido', 'Cliente / Item', 'Status / Qtd', 'Total (R$)', 'Horário'],
+      ...linhasPed,
+      [],
+      ['', '', 'TOTAL DO DIA', totalDia.toFixed(2), ''],
     ]);
     XLSX.utils.book_append_sheet(wb, wsPed, 'Pedidos do Dia');
 
-    // 3. Fiados em aberto
-    const fiados = (JSON.parse(localStorage.getItem('crm_fiados')||'[]'));
-    const fRows = [];
-    fiados.forEach(f => {
-      (f.transactions||[]).filter(t=>!t.paid).forEach(t => {
-        fRows.push([f.name, f.phone||'', t.description, t.amount||0, t.date||'']);
+    // ── Aba 3: Produtos mais vendidos hoje ───────────────────
+    const vendidos = {};
+    pedHoje.forEach(o => {
+      (o.items||[]).forEach(i => {
+        if (!vendidos[i.name]) vendidos[i.name] = { qtd: 0, total: 0, cat: i.category||'' };
+        vendidos[i.name].qtd   += parseInt(i.quantity)||1;
+        vendidos[i.name].total += (parseFloat(i.price)||0) * (parseInt(i.quantity)||1);
       });
     });
-    const wsFiad = XLSX.utils.aoa_to_sheet([
-      ['Cliente','Telefone','Descrição','Valor (R$)','Data'],
-      ...fRows
-    ]);
-    XLSX.utils.book_append_sheet(wb, wsFiad, 'Fiados em Aberto');
+    const rankProd = Object.entries(vendidos)
+      .sort((a,b) => b[1].qtd - a[1].qtd)
+      .map(([nome, v], idx) => [idx+1, nome, v.cat, v.qtd, v.total.toFixed(2)]);
 
-    // 4. Contas a pagar
-    const bills = (JSON.parse(localStorage.getItem('crm_bills')||'[]'));
-    const wsBills = XLSX.utils.aoa_to_sheet([
-      ['Nome','Categoria','Valor (R$)','Vencimento','Status'],
-      ...bills.map(b => [b.name, b.category||'', b.amount||0, b.dueDate||'', b.status||'pendente'])
+    const wsProd = XLSX.utils.aoa_to_sheet([
+      ['#', 'Produto', 'Categoria', 'Qtd. Vendida', 'Total (R$)'],
+      ...(rankProd.length ? rankProd : [['—', 'Nenhuma venda hoje', '', 0, '0.00']]),
     ]);
-    XLSX.utils.book_append_sheet(wb, wsBills, 'Contas');
+    XLSX.utils.book_append_sheet(wb, wsProd, 'Produtos Vendidos');
 
-    // 5. Todos os pedidos
-    const wsAll = XLSX.utils.aoa_to_sheet([
-      ['Pedido','Cliente','Status','Total (R$)','Data'],
-      ...allOrders.map(o => [
-        o.orderNumber||o.id,
-        o.client||'—',
-        o.status,
-        (o.items||[]).reduce((s,i)=>s+(i.price||0)*(i.quantity||1),0).toFixed(2),
-        (o.createdAt||'').slice(0,16).replace('T',' ')
-      ])
-    ]);
-    XLSX.utils.book_append_sheet(wb, wsAll, 'Historico Pedidos');
-
-    XLSX.writeFile(wb, `Backup_GodoySouza_${dStr}.xlsx`);
+    XLSX.writeFile(wb, `Vendas_GodoySouza_${dStr}.xlsx`);
     return true;
   } catch(e) {
     console.error('Backup error:', e);
@@ -181,15 +200,15 @@ function playAndLogout() {
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
         </div>
-        <h3 style="font-size:17px;font-weight:700;color:#1e293b;margin-bottom:6px">Backup obrigatório</h3>
-        <p style="font-size:13px;color:#64748b;line-height:1.5">Antes de sair, baixe o backup do dia.<br>Isso garante que os dados estão salvos.</p>
+        <h3 style="font-size:17px;font-weight:700;color:#1e293b;margin-bottom:6px">Relatório do dia</h3>
+        <p style="font-size:13px;color:#64748b;line-height:1.5">Baixe o relatório de vendas antes de sair.<br>Mostra quanto dinheiro entrou hoje.</p>
       </div>
 
       <button id="btnBaixarBackup" style="width:100%;padding:12px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-        Baixar backup do dia (.xlsx)
+        Baixar relatório de vendas (.xlsx)
       </button>
 
       <div id="backupOkMsg" style="display:none;background:#dcfce7;color:#16a34a;border-radius:8px;padding:9px 12px;font-size:13px;font-weight:600;text-align:center;margin-bottom:12px">

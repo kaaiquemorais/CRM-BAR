@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -139,7 +139,7 @@
 .history-section{margin-top:32px}
 .history-section details{margin-top:0}
 .history-section summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--text-secondary);padding:12px 0;list-style:none;display:flex;align-items:center;gap:8px}
-.history-section summary::before{content:'â–¶';font-size:10px;transition:transform .2s}
+.history-section summary::before{content:'▶';font-size:10px;transition:transform .2s}
 .history-section details[open] summary::before{transform:rotate(90deg)}
 </style>
 </head>
@@ -193,15 +193,15 @@
         </div>
       </div>
 
-      <!-- HistÃ³rico -->
+      <!-- Histórico -->
       <div class="history-section">
         <details>
-          <summary>HistÃ³rico de pedidos anteriores</summary>
+          <summary>Histórico de pedidos anteriores</summary>
           <div style="margin-top:16px">
             <div class="toolbar" style="margin-bottom:16px">
               <div class="search-input" style="max-width:300px">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="histSearch" placeholder="Buscar pedidoâ€¦" oninput="renderHistory()">
+                <input type="text" id="histSearch" placeholder="Buscar pedido…" oninput="renderHistory()">
               </div>
               <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;padding:8px 14px;font-size:13px" onclick="confirmDeleteAll()">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6m4-6v6"/></svg>
@@ -235,7 +235,7 @@
       <!-- Cliente -->
       <div class="form-group">
         <label>Mesa / Cliente</label>
-        <input type="text" id="drawerClient" placeholder="Ex: Mesa 3, JoÃ£oâ€¦" style="font-size:15px;font-weight:500">
+        <input type="text" id="drawerClient" placeholder="Ex: Mesa 3, João…" style="font-size:15px;font-weight:500">
       </div>
 
       <!-- Favorite items (pastel, coxinha, bebidas) -->
@@ -250,7 +250,7 @@
       <div class="section-label">Buscar produto</div>
       <div class="search-input" style="margin-bottom:10px">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="drawerSearch" placeholder="Digite o nomeâ€¦" oninput="renderSearchResults()">
+        <input type="text" id="drawerSearch" placeholder="Digite o nome…" oninput="renderSearchResults()">
       </div>
       <div class="search-results" id="searchResults"></div>
 
@@ -439,7 +439,7 @@ window.openDrawer = function(orderId) {
     const o = DB.getOrders().find(x => x.id === orderId);
     if (!o) return;
     document.getElementById('drawerTitle').textContent = o.orderNumber;
-    document.getElementById('drawerSub').textContent = `${o.client || 'Consumidor'} Â· adicionar mais itens`;
+    document.getElementById('drawerSub').textContent = `${o.client || 'Consumidor'} · adicionar mais itens`;
     document.getElementById('drawerClient').value = o.client || '';
     document.getElementById('drawerClient').disabled = true;
   } else {
@@ -479,8 +479,8 @@ function renderQuickGrid() {
       ${outOfStock ? 'disabled title="Sem estoque"' : ''}
       >
       <span class="qb-added">${qty}</span>
-      <span class="qb-emoji">${p.emoji || 'ðŸ“¦'}</span>
-      <span class="qb-name">${escHtml(p.name.length > 14 ? p.name.slice(0,13)+'â€¦' : p.name)}</span>
+      <span class="qb-emoji">${p.emoji || '📦'}</span>
+      <span class="qb-name">${escHtml(p.name.length > 14 ? p.name.slice(0,13)+'…' : p.name)}</span>
       <span class="qb-price">${fmtMoney(p.price)}</span>
     </button>`;
   }).join('');
@@ -495,7 +495,7 @@ window.renderSearchResults = function() {
   ).slice(0, 8);
   document.getElementById('searchResults').innerHTML = results.map(p => `
     <div class="sr-item" onclick="addDraftItem(${p.id})">
-      <span class="sr-emoji">${p.emoji || 'ðŸ“¦'}</span>
+      <span class="sr-emoji">${p.emoji || '📦'}</span>
       <span class="sr-name">${escHtml(p.name)}</span>
       <span class="sr-price">${fmtMoney(p.price)}</span>
       <button class="sr-add">+</button>
@@ -510,7 +510,7 @@ window.addDraftItem = function(productId) {
   if (existing) {
     existing.quantity++;
   } else {
-    draftItems.push({ productId: p.id, productName: p.name, price: p.price, quantity: 1, emoji: p.emoji || 'ðŸ“¦' });
+    draftItems.push({ productId: p.id, productName: p.name, price: p.price, quantity: 1, emoji: p.emoji || '📦' });
   }
   renderQuickGrid();
   renderDrawerItems();
@@ -550,12 +550,12 @@ function renderDrawerItems() {
 
   let html = '';
   if (existingItems.length) {
-    html += `<div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:8px">JÃ¡ no pedido</div>`;
+    html += `<div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:8px">Já no pedido</div>`;
     html += existingItems.map(i => `
       <div class="drawer-item" style="opacity:.6">
         <div class="di-info">
-          <div class="di-name">${DB.getProduct(i.productId)?.emoji||'ðŸ“¦'} ${escHtml(i.productName)}</div>
-          <div class="di-price">${fmtMoney(i.price)} Ã— ${i.quantity}</div>
+          <div class="di-name">${DB.getProduct(i.productId)?.emoji||'📦'} ${escHtml(i.productName)}</div>
+          <div class="di-price">${fmtMoney(i.price)} × ${i.quantity}</div>
         </div>
         <div class="di-subtotal">${fmtMoney(i.price * i.quantity)}</div>
       </div>`).join('');
@@ -569,7 +569,7 @@ function renderDrawerItems() {
         <div class="di-price">${fmtMoney(i.price)} cada</div>
       </div>
       <div class="ci-controls">
-        <button class="qty-btn" onclick="changeDraftQty(${i.productId},-1)">âˆ’</button>
+        <button class="qty-btn" onclick="changeDraftQty(${i.productId},-1)">−</button>
         <span class="qty-num">${i.quantity}</span>
         <button class="qty-btn" onclick="changeDraftQty(${i.productId},1)">+</button>
       </div>
@@ -595,7 +595,7 @@ function renderDrawerActions() {
     area.innerHTML = `
       <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="createOrder()" ${!draftItems.length ? 'disabled' : ''}>
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
-        Abrir Comanda${draftItems.length > 0 ? ' Â· ' + fmtMoney(draftItems.reduce((s,i)=>s+i.price*i.quantity,0)) : ''}
+        Abrir Comanda${draftItems.length > 0 ? ' · ' + fmtMoney(draftItems.reduce((s,i)=>s+i.price*i.quantity,0)) : ''}
       </button>`;
   }
 }
@@ -611,7 +611,7 @@ window.createOrder = function() {
     total,
     status: 'aberto'
   });
-  toast(`${o.orderNumber} Â· ${escHtml(client)} aberto!`, 'success');
+  toast(`${o.orderNumber} · ${escHtml(client)} aberto!`, 'success');
   closeDrawer();
   renderKanban();
 };
@@ -681,7 +681,7 @@ function renderHistory() {
           </div>
         </div>`;
       }).join('')
-    : `<div class="empty-state" style="padding:32px"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="40" height="40"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg><h3>Nenhum histÃ³rico</h3></div>`;
+    : `<div class="empty-state" style="padding:32px"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="40" height="40"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg><h3>Nenhum histórico</h3></div>`;
 }
 
 window.openEditOrder = function(id) {
@@ -696,7 +696,7 @@ window.openEditOrder = function(id) {
   modal.innerHTML = `
     <div style="background:var(--card);border-radius:16px;padding:28px;max-width:420px;width:100%;box-shadow:0 20px 48px rgba(0,0,0,.18);font-family:inherit">
       <h3 style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">Editar Pedido</h3>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">${escHtml(o.orderNumber)} Â· ${fmtDate(o.createdAt, true)}</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">${escHtml(o.orderNumber)} · ${fmtDate(o.createdAt, true)}</p>
 
       <div style="margin-bottom:16px">
         <label style="display:block;font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px">Cliente / Mesa</label>
@@ -770,9 +770,9 @@ window.confirmDeleteOrder = function(id) {
         <svg fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24" width="26" height="26"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6m4-6v6"/></svg>
       </div>
       <h3 style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">Apagar pedido?</h3>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">${escHtml(o.orderNumber)} Â· ${escHtml(o.client || 'Consumidor')}</p>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px">${fmtMoney(o.total)} Â· ${fmtDate(o.createdAt, true)}</p>
-      <p style="font-size:12px;color:#dc2626;margin-bottom:20px;font-weight:500">Esta aÃ§Ã£o nÃ£o pode ser desfeita.</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">${escHtml(o.orderNumber)} · ${escHtml(o.client || 'Consumidor')}</p>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px">${fmtMoney(o.total)} · ${fmtDate(o.createdAt, true)}</p>
+      <p style="font-size:12px;color:#dc2626;margin-bottom:20px;font-weight:500">Esta ação não pode ser desfeita.</p>
       <div style="display:flex;gap:10px">
         <button onclick="document.getElementById('deleteOrderModal').remove()"
           style="flex:1;padding:11px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">
@@ -805,7 +805,7 @@ window.confirmDeleteAll = function() {
   const toDelete = DB.getOrders()
     .filter(o => new Date(o.createdAt).toDateString() !== today || o.status === 'cancelado')
     .filter(o => o.status !== 'aberto');
-  if (!toDelete.length) { toast('Nenhum pedido no histÃ³rico para apagar.', 'warning'); return; }
+  if (!toDelete.length) { toast('Nenhum pedido no histórico para apagar.', 'warning'); return; }
 
   const modal = document.createElement('div');
   modal.id = 'deleteAllModal';
@@ -816,9 +816,9 @@ window.confirmDeleteAll = function() {
         <div style="width:52px;height:52px;background:#fee2e2;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
           <svg fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24" width="26" height="26"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6m4-6v6"/></svg>
         </div>
-        <h3 style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">Apagar todo o histÃ³rico?</h3>
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Esta aÃ§Ã£o vai remover <strong>${toDelete.length} pedido(s)</strong> do histÃ³rico.</p>
-        <p style="font-size:12px;color:#dc2626;font-weight:500;margin-bottom:20px">NÃ£o pode ser desfeita.</p>
+        <h3 style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">Apagar todo o histórico?</h3>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Esta ação vai remover <strong>${toDelete.length} pedido(s)</strong> do histórico.</p>
+        <p style="font-size:12px;color:#dc2626;font-weight:500;margin-bottom:20px">Não pode ser desfeita.</p>
       </div>
       <div style="margin-bottom:16px">
         <label style="display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">Confirme sua senha para continuar</label>
@@ -864,13 +864,13 @@ window.doDeleteAll = function() {
   document.getElementById('deleteAllModal').remove();
   renderHistory();
   renderKanban();
-  toast('HistÃ³rico apagado com sucesso.', 'success');
+  toast('Histórico apagado com sucesso.', 'success');
 };
 
 // ===== FAVORITES =====
 // Produtos fixos que sempre aparecem primeiro nos favoritos
-const PRIORITY_KEYWORDS = ['pastel','coxinha','risole','risÃ³leo'];
-const FAV_KEYWORDS = ['cerveja','coca','refrig','suco','caipirinha','Ã¡gua','dose','whisky'];
+const PRIORITY_KEYWORDS = ['pastel','coxinha','risole','risóleo'];
+const FAV_KEYWORDS = ['cerveja','coca','refrig','suco','caipirinha','água','dose','whisky'];
 
 function getFavProducts() {
   const products = DB.getProducts();
@@ -883,7 +883,7 @@ function getFavProducts() {
     !priority.find(f => f.id === p.id) &&
     FAV_KEYWORDS.some(kw => p.name.toLowerCase().includes(kw))
   );
-  // Se ainda nÃ£o tiver 6, completa com mais vendidos
+  // Se ainda não tiver 6, completa com mais vendidos
   const combined = [...priority, ...others];
   if (combined.length < 6) {
     const top = topProducts(12).filter(p => !combined.find(f => f.id === p.id));
@@ -902,8 +902,8 @@ function renderFavGrid() {
       ${outOfStock ? 'disabled title="Sem estoque"' : ''}
       >
       <span class="qb-added">${qty}</span>
-      <span class="qb-emoji">${p.emoji || 'ðŸ“¦'}</span>
-      <span class="qb-name">${escHtml(p.name.length > 16 ? p.name.slice(0,15)+'â€¦' : p.name)}</span>
+      <span class="qb-emoji">${p.emoji || '📦'}</span>
+      <span class="qb-name">${escHtml(p.name.length > 16 ? p.name.slice(0,15)+'…' : p.name)}</span>
       <span class="qb-price">${fmtMoney(p.price)}</span>
     </button>`;
   }).join('');
@@ -921,16 +921,16 @@ function showLowStockPopup() {
   popup.className = 'low-stock-popup';
   popup.innerHTML = `
     <div class="lsp-head">
-      <span style="font-size:20px">âš ï¸</span>
+      <span style="font-size:20px">⚠️</span>
       <h4>${low.length} produto${low.length>1?'s':''} com estoque baixo</h4>
-      <button class="lsp-close" onclick="this.closest('.low-stock-popup').remove()">Ã—</button>
+      <button class="lsp-close" onclick="this.closest('.low-stock-popup').remove()">×</button>
     </div>
     ${low.slice(0,5).map(p => `
       <div class="lsp-item">
-        <span>${p.emoji||'ðŸ“¦'} ${escHtml(p.name)}</span>
+        <span>${p.emoji||'📦'} ${escHtml(p.name)}</span>
         <strong>${p.stock === 0 ? 'Zerado' : p.stock + ' ' + (p.unit||'un')}</strong>
       </div>`).join('')}
-    ${low.length > 5 ? `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;text-align:center">+${low.length-5} mais Â· <a href="estoque.html" style="color:var(--primary)">ver estoque</a></div>` : ''}`;
+    ${low.length > 5 ? `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;text-align:center">+${low.length-5} mais · <a href="estoque.html" style="color:var(--primary)">ver estoque</a></div>` : ''}`;
   document.body.appendChild(popup);
   setTimeout(() => { if (popup.parentNode) popup.style.animation = 'none'; }, 5000);
   setTimeout(() => { if (popup.parentNode) popup.remove(); }, 8000);
@@ -958,17 +958,17 @@ window.changeDraftQty = function(productId, delta) {
 // ===== BOAS-VINDAS =====
 const VERSES = [
   { text: '"Tudo posso naquele que me fortalece."', ref: 'Filipenses 4:13' },
-  { text: '"Porque eu sei os planos que tenho para vocÃª, diz o Senhor, planos de paz e nÃ£o de mal, para lhe dar um futuro e uma esperanÃ§a."', ref: 'Jeremias 29:11' },
-  { text: '"NÃ£o temas, porque eu sou contigo; nÃ£o te assombres, porque eu sou o teu Deus; eu te fortaleÃ§o, e te ajudo."', ref: 'IsaÃ­as 41:10' },
-  { text: '"Os que esperam no Senhor renovam as suas forÃ§as, sobem com asas como Ã¡guias, correm e nÃ£o se cansam, caminham e nÃ£o se fatigam."', ref: 'IsaÃ­as 40:31' },
-  { text: '"Porque Deus nÃ£o nos deu o espÃ­rito de temor, mas de poder, de amor e de equilÃ­brio."', ref: '2 TimÃ³teo 1:7' },
-  { text: '"Sede fortes e corajosos. NÃ£o temais, porque o Senhor, o vosso Deus, Ã© o que vai convosco; nÃ£o te deixarÃ¡, nem te desampararÃ¡."', ref: 'DeuteronÃ´mio 31:6' },
-  { text: '"Confie no Senhor de todo o seu coraÃ§Ã£o e nÃ£o se apoie em seu prÃ³prio entendimento; reconheÃ§a-o em todos os seus caminhos, e ele endireitarÃ¡ as suas veredas."', ref: 'ProvÃ©rbios 3:5-6' },
-  { text: '"O Senhor Ã© a minha luz e a minha salvaÃ§Ã£o; a quem temerei?"', ref: 'Salmos 27:1' },
-  { text: '"Eu vim para que todos tenham vida, e a tenham em abundÃ¢ncia."', ref: 'JoÃ£o 10:10' },
+  { text: '"Porque eu sei os planos que tenho para você, diz o Senhor, planos de paz e não de mal, para lhe dar um futuro e uma esperança."', ref: 'Jeremias 29:11' },
+  { text: '"Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus; eu te fortaleço, e te ajudo."', ref: 'Isaías 41:10' },
+  { text: '"Os que esperam no Senhor renovam as suas forças, sobem com asas como águias, correm e não se cansam, caminham e não se fatigam."', ref: 'Isaías 40:31' },
+  { text: '"Porque Deus não nos deu o espírito de temor, mas de poder, de amor e de equilíbrio."', ref: '2 Timóteo 1:7' },
+  { text: '"Sede fortes e corajosos. Não temais, porque o Senhor, o vosso Deus, é o que vai convosco; não te deixará, nem te desamparará."', ref: 'Deuteronômio 31:6' },
+  { text: '"Confie no Senhor de todo o seu coração e não se apoie em seu próprio entendimento; reconheça-o em todos os seus caminhos, e ele endireitará as suas veredas."', ref: 'Provérbios 3:5-6' },
+  { text: '"O Senhor é a minha luz e a minha salvação; a quem temerei?"', ref: 'Salmos 27:1' },
+  { text: '"Eu vim para que todos tenham vida, e a tenham em abundância."', ref: 'João 10:10' },
   { text: '"Alegrai-vos sempre no Senhor; outra vez digo, alegrai-vos."', ref: 'Filipenses 4:4' },
-  { text: '"O Senhor te abenÃ§oe e te guarde; o Senhor faÃ§a resplandecer o seu rosto sobre ti e tenha misericÃ³rdia de ti."', ref: 'NÃºmeros 6:24-25' },
-  { text: '"Bem-aventurado o homem que suporta a provaÃ§Ã£o; porque, quando for aprovado, receberÃ¡ a coroa da vida."', ref: 'Tiago 1:12' },
+  { text: '"O Senhor te abençoe e te guarde; o Senhor faça resplandecer o seu rosto sobre ti e tenha misericórdia de ti."', ref: 'Números 6:24-25' },
+  { text: '"Bem-aventurado o homem que suporta a provação; porque, quando for aprovado, receberá a coroa da vida."', ref: 'Tiago 1:12' },
 ];
 
 function showWelcome() {
@@ -982,12 +982,12 @@ function showWelcome() {
   popup.className = 'welcome-popup';
   popup.innerHTML = `
     <div class="wp-head">
-      <span class="wp-icon">ðŸ“–</span>
+      <span class="wp-icon">📖</span>
       <div class="wp-content">
         <div class="wp-text">${verse.text}</div>
         <div class="wp-ref">${verse.ref}</div>
       </div>
-      <button class="wp-close" onclick="document.getElementById('welcomePopup').remove()">Ã—</button>
+      <button class="wp-close" onclick="document.getElementById('welcomePopup').remove()">×</button>
     </div>`;
 
   document.body.appendChild(popup);

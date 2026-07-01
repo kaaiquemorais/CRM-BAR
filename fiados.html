@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:;">
 <title>Fiados — Bar e Mercearia Godoy e Souza</title>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="stylesheet" href="css/style.css">
@@ -128,7 +128,7 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Fiados</h1>
-      <p class="page-subtitle">Clientes que estão devendo no bar</p>
+      <p class="page-subtitle">Clientes que estÃ£o devendo no bar</p>
     </div>
     <div class="topbar-actions">
       <button class="btn-new" onclick="openNewPerson()">
@@ -163,14 +163,14 @@
   <div class="mo-box" style="max-width:500px" onclick="event.stopPropagation()">
     <div class="mo-head">
       <h2 class="mo-title" id="personModalTitle">Novo Devedor</h2>
-      <button class="mo-close" onclick="closePersonModal()">×</button>
+      <button class="mo-close" onclick="closePersonModal()">Ã—</button>
     </div>
     <div class="mo-body">
 
       <p class="section-label">Dados do cliente</p>
       <div class="frow">
         <label>Nome completo *</label>
-        <input id="pName" type="text" placeholder="Ex: João da Silva" maxlength="100" onkeydown="if(event.key==='Enter')document.getElementById('pPhone').focus()">
+        <input id="pName" type="text" placeholder="Ex: JoÃ£o da Silva" maxlength="100" onkeydown="if(event.key==='Enter')document.getElementById('pPhone').focus()">
       </div>
       <div class="frow-2">
         <div class="frow" style="margin-bottom:0">
@@ -183,7 +183,7 @@
         </div>
       </div>
       <div class="frow" style="margin-top:14px">
-        <label>Observações</label>
+        <label>ObservaÃ§Ãµes</label>
         <textarea id="pNotes" placeholder="Ex: vizinha da padaria, paga toda sexta..." maxlength="300"></textarea>
       </div>
 
@@ -191,7 +191,7 @@
       <hr class="divider">
       <label class="opt-toggle">
         <input type="checkbox" id="addFirstTx" onchange="toggleFirstTx()">
-        Já adicionar o primeiro fiado agora
+        JÃ¡ adicionar o primeiro fiado agora
       </label>
       <div id="firstTxSection" style="display:none">
         <div class="opt-section">
@@ -227,7 +227,7 @@
         <h2 class="mo-title">Adicionar Fiado</h2>
         <p id="txModalSub" style="font-size:13px;color:var(--text-muted);margin-top:3px"></p>
       </div>
-      <button class="mo-close" onclick="closeTxModal()">×</button>
+      <button class="mo-close" onclick="closeTxModal()">Ã—</button>
     </div>
 
     <!-- Abas -->
@@ -282,7 +282,7 @@
       </div>
     </div>
 
-    <!-- data compartilhada (aba estoque) + rodapé -->
+    <!-- data compartilhada (aba estoque) + rodapÃ© -->
     <div style="padding:0 24px 20px">
       <div id="txDateRowEstoque" class="frow-2" style="margin-bottom:16px">
         <div class="frow" style="margin-bottom:0">
@@ -304,7 +304,7 @@
   <div class="mo-box" style="max-width:380px" onclick="event.stopPropagation()">
     <div class="mo-head">
       <h2 class="mo-title">Quitar tudo?</h2>
-      <button class="mo-close" onclick="document.getElementById('quitarModal').style.display='none'">×</button>
+      <button class="mo-close" onclick="document.getElementById('quitarModal').style.display='none'">Ã—</button>
     </div>
     <div class="mo-body">
       <p style="font-size:14px;color:var(--text-secondary)">Isso vai marcar <strong id="quitarName"></strong> como <strong>todos os fiados pagos</strong>. Confirma?</p>
@@ -322,10 +322,10 @@
   <div class="mo-box" style="max-width:360px" onclick="event.stopPropagation()">
     <div class="mo-head">
       <h2 class="mo-title">Apagar devedor?</h2>
-      <button class="mo-close" onclick="document.getElementById('deletePersonModal').style.display='none'">×</button>
+      <button class="mo-close" onclick="document.getElementById('deletePersonModal').style.display='none'">Ã—</button>
     </div>
     <div class="mo-body">
-      <p style="font-size:14px;color:var(--text-secondary)">Isso vai apagar <strong id="delPersonName"></strong> e <strong>todos os fiados</strong> registrados. Não tem como desfazer.</p>
+      <p style="font-size:14px;color:var(--text-secondary)">Isso vai apagar <strong id="delPersonName"></strong> e <strong>todos os fiados</strong> registrados. NÃ£o tem como desfazer.</p>
     </div>
     <div class="mo-foot">
       <button class="btn-full btn-cancel" onclick="document.getElementById('deletePersonModal').style.display='none'">Cancelar</button>
@@ -334,15 +334,15 @@
   </div>
 </div>
 
-<!-- ===== MODAL: Apagar lançamento ===== -->
+<!-- ===== MODAL: Apagar lanÃ§amento ===== -->
 <div id="deleteTxModal" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="mo-box" style="max-width:360px" onclick="event.stopPropagation()">
     <div class="mo-head">
-      <h2 class="mo-title">Apagar lançamento?</h2>
-      <button class="mo-close" onclick="document.getElementById('deleteTxModal').style.display='none'">×</button>
+      <h2 class="mo-title">Apagar lanÃ§amento?</h2>
+      <button class="mo-close" onclick="document.getElementById('deleteTxModal').style.display='none'">Ã—</button>
     </div>
     <div class="mo-body">
-      <p style="font-size:14px;color:var(--text-secondary)">O lançamento será removido permanentemente.</p>
+      <p style="font-size:14px;color:var(--text-secondary)">O lanÃ§amento serÃ¡ removido permanentemente.</p>
     </div>
     <div class="mo-foot">
       <button class="btn-full btn-cancel" onclick="document.getElementById('deleteTxModal').style.display='none'">Cancelar</button>
@@ -400,7 +400,7 @@ function renderStats() {
     <div class="stat-card">
       <div class="stat-label">Total em aberto</div>
       <div class="stat-value" style="color:var(--danger)">${fmtMoney(totalDebt)}</div>
-      <div class="stat-sub">${totalTx} lançamento${totalTx!==1?'s':''} pendente${totalTx!==1?'s':''}</div>
+      <div class="stat-sub">${totalTx} lanÃ§amento${totalTx!==1?'s':''} pendente${totalTx!==1?'s':''}</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Pessoas devendo</div>
@@ -408,7 +408,7 @@ function renderStats() {
       <div class="stat-sub">de ${all.length} cadastrado${all.length!==1?'s':''}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Total já recebido</div>
+      <div class="stat-label">Total jÃ¡ recebido</div>
       <div class="stat-value" style="color:var(--success)">${fmtMoney(paidTotal)}</div>
       <div class="stat-sub">em fiados quitados</div>
     </div>
@@ -426,9 +426,9 @@ function renderList() {
   const el = document.getElementById('listContainer');
   if (!list.length) {
     const msgs = {
-      abertos:  ['Ninguém devendo agora!','Nenhum cliente com fiado em aberto.'],
-      quitados: ['Nenhum fiado quitado ainda.','Quando alguém pagar aparece aqui.'],
-      todos:    ['Nenhum devedor cadastrado.','Clique em "Novo Devedor" para começar.'],
+      abertos:  ['NinguÃ©m devendo agora!','Nenhum cliente com fiado em aberto.'],
+      quitados: ['Nenhum fiado quitado ainda.','Quando alguÃ©m pagar aparece aqui.'],
+      todos:    ['Nenhum devedor cadastrado.','Clique em "Novo Devedor" para comeÃ§ar.'],
     };
     const [h,p] = msgs[_filter] || msgs.todos;
     el.innerHTML = `
@@ -460,12 +460,12 @@ function cardHtml(f) {
           <span class="tx-val">${fmtMoney(t.amount)}</span>
           <span class="tx-btns">
             ${!t.paid
-              ? `<button class="tx-btn tx-btn-pay" title="Marcar como pago" onclick="payTx(${f.id},${t.id})">✓</button>`
-              : `<button class="tx-btn tx-btn-undo" title="Desfazer pagamento" onclick="unpayTx(${f.id},${t.id})">↩</button>`}
-            <button class="tx-btn tx-btn-del" title="Apagar lançamento" onclick="confirmDeleteTx(${f.id},${t.id})">×</button>
+              ? `<button class="tx-btn tx-btn-pay" title="Marcar como pago" onclick="payTx(${f.id},${t.id})">âœ“</button>`
+              : `<button class="tx-btn tx-btn-undo" title="Desfazer pagamento" onclick="unpayTx(${f.id},${t.id})">â†©</button>`}
+            <button class="tx-btn tx-btn-del" title="Apagar lanÃ§amento" onclick="confirmDeleteTx(${f.id},${t.id})">Ã—</button>
           </span>
         </li>`).join('')
-    : `<p class="tx-empty">Nenhum lançamento ainda.</p>`;
+    : `<p class="tx-empty">Nenhum lanÃ§amento ainda.</p>`;
 
   return `
     <div class="fiado-card">
@@ -473,9 +473,9 @@ function cardHtml(f) {
         <div class="fc-avatar">${escHtml((f.name||'?')[0])}</div>
         <div class="fc-info">
           <div class="fc-name">${escHtml(f.name)}</div>
-          ${f.phone ? `<div class="fc-phone">📞 ${escHtml(f.phone)}</div>` : ''}
-          ${f.doc   ? `<div class="fc-phone">🪪 ${escHtml(f.doc)}</div>` : ''}
-          <span class="fc-badge ${isOk?'fc-badge-ok':'fc-badge-open'}">${isOk?'✓ Quitado':'● Em aberto'}</span>
+          ${f.phone ? `<div class="fc-phone">ðŸ“ž ${escHtml(f.phone)}</div>` : ''}
+          ${f.doc   ? `<div class="fc-phone">ðŸªª ${escHtml(f.doc)}</div>` : ''}
+          <span class="fc-badge ${isOk?'fc-badge-ok':'fc-badge-open'}">${isOk?'âœ“ Quitado':'â— Em aberto'}</span>
         </div>
         <div class="fc-total">
           <div class="fc-total-value">${fmtMoney(debt)}</div>
@@ -622,7 +622,7 @@ function doQuitarTudo() {
   renderStats(); renderList();
 }
 
-/* ---- transação CRUD ---- */
+/* ---- transaÃ§Ã£o CRUD ---- */
 let _txTab      = 'estoque';  // 'estoque' | 'manual'
 let _catFilter  = 'Todas';
 let _prodQtys   = {};         // { productId: qty }
@@ -688,13 +688,13 @@ function renderProdPicker() {
     const qty = _prodQtys[p.id] || 0;
     return `
       <div class="prod-card${qty>0?' has-qty':''}" id="pc-${p.id}">
-        <span class="prod-emoji">${p.emoji||'📦'}</span>
+        <span class="prod-emoji">${p.emoji||'ðŸ“¦'}</span>
         <div class="prod-info">
           <div class="prod-name" title="${escHtml(p.name)}">${escHtml(p.name)}</div>
           <div class="prod-price">${fmtMoney(p.price)} / ${escHtml(p.unit||'un')}</div>
         </div>
         <div class="qty-ctrl">
-          <button class="qty-btn" onclick="changeQty(${p.id},-1)">−</button>
+          <button class="qty-btn" onclick="changeQty(${p.id},-1)">âˆ’</button>
           <span class="qty-val" id="qv-${p.id}">${qty}</span>
           <button class="qty-btn" onclick="changeQty(${p.id},1)">+</button>
         </div>
@@ -728,7 +728,7 @@ function updateSelSummary() {
     const sub = p.price * qty;
     total += sub;
     return `<div style="display:flex;justify-content:space-between;color:var(--text)">
-      <span>${p.emoji||'📦'} ${qty}× ${escHtml(p.name)}</span>
+      <span>${p.emoji||'ðŸ“¦'} ${qty}Ã— ${escHtml(p.name)}</span>
       <span style="font-weight:600">${fmtMoney(sub)}</span>
     </div>`;
   }).join('');
@@ -745,7 +745,7 @@ function saveTx() {
     selected.forEach(([pid, qty]) => {
       const p = DB.getProduct(parseInt(pid));
       if (!p) return;
-      parts.push(`${qty}× ${p.name}`);
+      parts.push(`${qty}Ã— ${p.name}`);
       total += p.price * qty;
     });
     DB.addFiadoTransaction(_txPersonId, { description: parts.join(', '), amount: total, date });
@@ -754,7 +754,7 @@ function saveTx() {
     const amount = parseFloat(document.getElementById('txAmount').value);
     const date   = document.getElementById('txDate').value || today();
     if (!desc)             { toast('Informe o que foi fiado.','error'); document.getElementById('txDesc').focus(); return; }
-    if (!amount||amount<=0){ toast('Informe um valor válido.','error'); document.getElementById('txAmount').focus(); return; }
+    if (!amount||amount<=0){ toast('Informe um valor vÃ¡lido.','error'); document.getElementById('txAmount').focus(); return; }
     DB.addFiadoTransaction(_txPersonId, { description: desc, amount, date });
   }
   closeTxModal();
@@ -784,7 +784,7 @@ function doDeleteTx() {
   DB.deleteFiadoTx(_delTxInfo.fiadoId, _delTxInfo.txId);
   _delTxInfo = null;
   document.getElementById('deleteTxModal').style.display = 'none';
-  toast('Lançamento apagado.','default');
+  toast('LanÃ§amento apagado.','default');
   renderStats(); renderList();
 }
 </script>

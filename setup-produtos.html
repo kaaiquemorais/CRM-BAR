@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Setup Produtos — Bar Godoy e Souza</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,-apple-system,sans-serif;background:#f1f5f9;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+  .box{background:#fff;border-radius:16px;padding:36px 32px;max-width:520px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.1)}
+  h1{font-size:20px;font-weight:700;color:#1e293b;margin-bottom:6px}
+  p{font-size:14px;color:#64748b;margin-bottom:20px;line-height:1.6}
+  .warn{background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;font-size:13px;color:#92400e;margin-bottom:24px}
+  .count{font-size:13px;color:#475569;margin-bottom:20px;background:#f8fafc;border-radius:8px;padding:10px 14px;border:1px solid #e2e8f0}
+  .count strong{color:#1e293b}
+  .btn{width:100%;padding:12px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+  .btn-go{background:#6366f1;color:#fff;margin-bottom:10px}
+  .btn-go:hover{background:#4f46e5}
+  .btn-cancel{background:#f1f5f9;color:#64748b}
+  .btn-cancel:hover{background:#e2e8f0}
+  #result{margin-top:20px;padding:14px;border-radius:10px;font-size:14px;font-weight:600;text-align:center;display:none}
+  .ok{background:#dcfce7;color:#16a34a}
+  .err{background:#fee2e2;color:#dc2626}
+  .log{margin-top:16px;font-size:12px;color:#64748b;max-height:180px;overflow-y:auto;background:#f8fafc;border-radius:8px;padding:10px;border:1px solid #e2e8f0;display:none}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>Configurar Produtos do Estoque</h1>
+  <p>Isso vai <strong>apagar todos os produtos existentes</strong> e adicionar a lista completa de produtos do Bar e Mercearia Godoy e Souza.</p>
+
+  <div class="warn">
+    ⚠️ Pedidos, fiados e contas <strong>não serão apagados</strong>. Apenas o cadastro de produtos será substituído.
+  </div>
+
+  <div class="count" id="countBox">Carregando...</div>
+
+  <button class="btn btn-go" onclick="runSetup()">Sim, apagar e recriar produtos</button>
+  <a href="estoque.html"><button class="btn btn-cancel" type="button">Cancelar — voltar para o estoque</button></a>
+
+  <div id="result"></div>
+  <div id="logBox" class="log"></div>
+</div>
+
+<script>
+const PRODUTOS = [
+  // ─── BEBIDAS ───────────────────────────────────────────────
+  { name:'Refrigerante It Laranja – 2 L',          category:'Bebidas', emoji:'🥤', unit:'un' },
+  { name:'Refrigerante It Cola – 2 L',             category:'Bebidas', emoji:'🥤', unit:'un' },
+  { name:'Refrigerante It Guaraná Zero – 2 L',     category:'Bebidas', emoji:'🥤', unit:'un' },
+  { name:'Refrigerante It Limão – 2 L',            category:'Bebidas', emoji:'🥤', unit:'un' },
+  { name:'Refrigerante Mantovani Guaraná – 2 L',   category:'Bebidas', emoji:'🥤', unit:'un' },
+  { name:'Leite Líder – 1 L',                      category:'Bebidas', emoji:'🥛', unit:'un' },
+  { name:'Água Mineral Lindóia – 500 ml',          category:'Bebidas', emoji:'💧', unit:'un' },
+
+  // ─── COMIDAS – grãos, massas, básicos ─────────────────────
+  { name:'Café Toninho Extra Forte – 500 g',       category:'Comidas', emoji:'☕', unit:'pct' },
+  { name:'Café Toninho Tradicional – 500 g',       category:'Comidas', emoji:'☕', unit:'pct' },
+  { name:'Molho de Tomate Tarantella Tradicional', category:'Comidas', emoji:'🍅', unit:'un'  },
+  { name:'Miojo Turma da Mônica',                  category:'Comidas', emoji:'🍜', unit:'pct' },
+  { name:'Atum Ralado Coqueiro',                   category:'Comidas', emoji:'🐟', unit:'un'  },
+  { name:'Maionese Hellmann\'s – 500 g',           category:'Comidas', emoji:'🫙', unit:'un'  },
+  { name:'Macarrão Camil Penne – 500 g',           category:'Comidas', emoji:'🍝', unit:'pct' },
+  { name:'Macarrão Camil Parafuso – 500 g',        category:'Comidas', emoji:'🍝', unit:'pct' },
+  { name:'Macarrão Da Roz Ave Maria – 500 g',      category:'Comidas', emoji:'🍝', unit:'pct' },
+  { name:'Macarrão Da Roz Padre Nosso – 500 g',    category:'Comidas', emoji:'🍝', unit:'pct' },
+  { name:'Macarrão Da Roz Espaguete – 500 g',      category:'Comidas', emoji:'🍝', unit:'pct' },
+  { name:'Farinha de Trigo Anaconda Premium – 1 kg',category:'Comidas',emoji:'🌾', unit:'pct' },
+  { name:'Óleo Lisa – 900 ml',                     category:'Comidas', emoji:'🫙', unit:'un'  },
+  { name:'SaborAmi – 1 kg',                        category:'Comidas', emoji:'🧂', unit:'pct' },
+  { name:'SaborAmi – 300 g',                       category:'Comidas', emoji:'🧂', unit:'pct' },
+  { name:'Vinagre Fortaleza – 750 ml',             category:'Comidas', emoji:'🫙', unit:'un'  },
+  { name:'Feijoada em Lata Bordon – 830 g',        category:'Comidas', emoji:'🫘', unit:'un'  },
+  { name:'Feijoada em Lata Bordon – 430 g',        category:'Comidas', emoji:'🫘', unit:'un'  },
+  { name:'Sal Marfim – 1 kg',                      category:'Comidas', emoji:'🧂', unit:'pct' },
+  { name:'Sal Grosso Marfim – 1 kg',               category:'Comidas', emoji:'🧂', unit:'pct' },
+  { name:'Feijão Carioca Rosalito – 1 kg',         category:'Comidas', emoji:'🫘', unit:'pct' },
+  { name:'Feijão Preto Rosalito – 1 kg',           category:'Comidas', emoji:'🫘', unit:'pct' },
+  { name:'Arroz Supereco – 5 kg',                  category:'Comidas', emoji:'🍚', unit:'pct' },
+  { name:'Arroz Pateko – 5 kg',                    category:'Comidas', emoji:'🍚', unit:'pct' },
+  { name:'Toddy – 370 g',                          category:'Comidas', emoji:'☕', unit:'pct' },
+  { name:'Açúcar Cristal Colombo – 1 kg',          category:'Comidas', emoji:'🍬', unit:'pct' },
+  { name:'Açúcar Cristal Colombo – 5 kg',          category:'Comidas', emoji:'🍬', unit:'pct' },
+  { name:'Farinha de Milho Amarela PQ Alimentos – 1 kg', category:'Comidas', emoji:'🌽', unit:'pct' },
+  { name:'Pó para Fermento Royal – 100 g',         category:'Comidas', emoji:'🍞', unit:'un'  },
+  { name:'Creme de Leite Piracanjuba – 200 g',     category:'Comidas', emoji:'🥛', unit:'un'  },
+  { name:'Leite Condensado Campos do Jordão – 395 g',category:'Comidas',emoji:'🥛',unit:'un'  },
+  { name:'Leite Condensado Triângulo – 395 g',     category:'Comidas', emoji:'🥛', unit:'un'  },
+  { name:'Leite Condensado Moça – 395 g',          category:'Comidas', emoji:'🥛', unit:'un'  },
+  { name:'Seleta de Legumes – 280 g',              category:'Comidas', emoji:'🥕', unit:'un'  },
+  { name:'Milho Verde – 280 g',                    category:'Comidas', emoji:'🌽', unit:'un'  },
+  { name:'Ervilha – 280 g',                        category:'Comidas', emoji:'🫛', unit:'un'  },
+
+  // ─── COMIDAS – snacks ──────────────────────────────────────
+  { name:'Batata Chips Fritop Original – 50 g',    category:'Comidas', emoji:'🥔', unit:'un'  },
+  { name:'Batata Palha Original Fritop – 100 g',   category:'Comidas', emoji:'🥔', unit:'un'  },
+  { name:'Salgadinho Pingolitos Bacon',            category:'Comidas', emoji:'🍿', unit:'un'  },
+  { name:'Salgadinho Pingolitos Cebola',           category:'Comidas', emoji:'🍿', unit:'un'  },
+  { name:'Salgadinho Pingolitos Presunto',         category:'Comidas', emoji:'🍿', unit:'un'  },
+  { name:'Salgadinho Pingolitos Queijo',           category:'Comidas', emoji:'🍿', unit:'un'  },
+  { name:'Salgadinho Pingolitos Cebola e Salsa',   category:'Comidas', emoji:'🍿', unit:'un'  },
+  { name:'Salgadinho Pingolitos Requeijão',        category:'Comidas', emoji:'🍿', unit:'un'  },
+  { name:'Salgadinho Pingolitos Churrasco',        category:'Comidas', emoji:'🍿', unit:'un'  },
+  { name:'Salgadinho Corinho Fritop',              category:'Comidas', emoji:'🍿', unit:'un'  },
+  { name:'Pipoca Doce',                            category:'Comidas', emoji:'🍿', unit:'un'  },
+
+  // ─── COMIDAS – salgados/pastéis (feitos na hora) ──────────
+  { name:'Pastel de Carne',                        category:'Comidas', emoji:'🥟', unit:'un'  },
+  { name:'Pastel de Frango',                       category:'Comidas', emoji:'🥟', unit:'un'  },
+  { name:'Pastel de Presunto e Queijo',            category:'Comidas', emoji:'🥟', unit:'un'  },
+  { name:'Pastel de Queijo',                       category:'Comidas', emoji:'🥟', unit:'un'  },
+  { name:'Espetinho de Frango',                    category:'Comidas', emoji:'🍢', unit:'un'  },
+  { name:'Bisteca Empanada',                       category:'Comidas', emoji:'🥩', unit:'un'  },
+  { name:'Coxinha',                                category:'Comidas', emoji:'🍗', unit:'un'  },
+  { name:'Risole de Presunto e Queijo',            category:'Comidas', emoji:'🥟', unit:'un'  },
+  { name:'Risole de Carne',                        category:'Comidas', emoji:'🥟', unit:'un'  },
+  { name:'Salsicha Empanada',                      category:'Comidas', emoji:'🌭', unit:'un'  },
+
+  // ─── OUTROS – limpeza e higiene ───────────────────────────
+  { name:'Papel Toalha Sorella – 2 rolos',         category:'Outros',  emoji:'🧻', unit:'pct' },
+  { name:'Papel Higiênico Fofinho – Folha Dupla',  category:'Outros',  emoji:'🧻', unit:'pct' },
+  { name:'Papel Higiênico Fofinho',                category:'Outros',  emoji:'🧻', unit:'pct' },
+  { name:'Sabão em Pó Omo – 700 g',               category:'Outros',  emoji:'🧺', unit:'un'  },
+  { name:'Sabão em Pó Triex – 800 g',             category:'Outros',  emoji:'🧺', unit:'un'  },
+  { name:'Água Sanitária Suprema – 1 L',           category:'Outros',  emoji:'🧴', unit:'un'  },
+  { name:'Amaciante Suprema – 2 L',               category:'Outros',  emoji:'🧴', unit:'un'  },
+  { name:'Amaciante Concentrado Uau – 500 ml',     category:'Outros',  emoji:'🧴', unit:'un'  },
+  { name:'Desinfetante Uau – 500 ml',              category:'Outros',  emoji:'🧴', unit:'un'  },
+  { name:'Detergente Suprema – 500 ml',            category:'Outros',  emoji:'🧴', unit:'un'  },
+  { name:'Pasta de Dente Sorriso – 70 g',          category:'Outros',  emoji:'🪥', unit:'un'  },
+  { name:'Gilete Belém – 8 unidades',              category:'Outros',  emoji:'🪒', unit:'cx'  },
+  { name:'Álcool Sulmar – 500 ml',                 category:'Outros',  emoji:'🧴', unit:'un'  },
+  { name:'Velas Belém – 8 unidades',               category:'Outros',  emoji:'🕯️', unit:'cx'  },
+];
+
+// Show current state
+(function() {
+  try {
+    const existing = JSON.parse(localStorage.getItem('crm_products') || '[]');
+    document.getElementById('countBox').innerHTML =
+      `Produtos atualmente no sistema: <strong>${existing.length}</strong><br>Produtos que serão adicionados: <strong>${PRODUTOS.length}</strong>`;
+  } catch(e) {
+    document.getElementById('countBox').textContent = `Serão adicionados ${PRODUTOS.length} produtos.`;
+  }
+})();
+
+function log(msg) {
+  const el = document.getElementById('logBox');
+  el.style.display = 'block';
+  el.innerHTML += msg + '<br>';
+  el.scrollTop = el.scrollHeight;
+}
+
+function runSetup() {
+  document.querySelector('.btn-go').disabled = true;
+  document.querySelector('.btn-go').textContent = 'Processando...';
+
+  try {
+    // Clear products (keep other data intact)
+    localStorage.removeItem('crm_products');
+    log('✓ Produtos anteriores apagados.');
+
+    // Reset nextId to 1000 so products get clean IDs
+    localStorage.setItem('crm_nextid', JSON.stringify(1000));
+
+    const now = new Date().toISOString();
+    let idCounter = 1001;
+    const products = PRODUTOS.map(p => ({
+      id:        idCounter++,
+      name:      p.name,
+      category:  p.category,
+      emoji:     p.emoji,
+      unit:      p.unit,
+      price:     0,
+      cost:      0,
+      stock:     0,
+      minStock:  5,
+      createdAt: now,
+    }));
+
+    localStorage.setItem('crm_products', JSON.stringify(products));
+    // Update nextId to after all product IDs
+    localStorage.setItem('crm_nextid', JSON.stringify(idCounter));
+
+    log(`✓ ${products.length} produtos adicionados com sucesso.`);
+
+    const result = document.getElementById('result');
+    result.className = 'ok';
+    result.style.display = 'block';
+    result.innerHTML = `✅ ${products.length} produtos cadastrados!<br><a href="estoque.html" style="color:inherit;text-decoration:underline;margin-top:8px;display:inline-block">Ir para o Estoque →</a>`;
+
+    setTimeout(() => { location.href = 'estoque.html'; }, 2000);
+  } catch(e) {
+    const result = document.getElementById('result');
+    result.className = 'err';
+    result.style.display = 'block';
+    result.textContent = 'Erro: ' + e.message;
+    document.querySelector('.btn-go').disabled = false;
+    document.querySelector('.btn-go').textContent = 'Tentar novamente';
+    log('✗ Erro: ' + e.message);
+  }
+}
+</script>
+</body>
+</html>

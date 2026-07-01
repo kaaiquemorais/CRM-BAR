@@ -29,7 +29,7 @@ function renderNav(activePage) {
   const lowStock = products.filter(p => p.stock <= p.minStock).length;
 
   const html = `
-  <aside class="sidebar">
+  <aside class="sidebar" id="appSidebar">
     <a href="dashboard.html" class="sidebar-brand">
       <img src="logo.png" alt="Bar e Mercearia Godoy e Souza" style="width:110px;height:auto;display:block;margin:0 auto 4px">
     </a>
@@ -68,7 +68,13 @@ function renderNav(activePage) {
     </div>
   </aside>`;
 
-  document.getElementById('navContainer').innerHTML = html;
+  document.getElementById('navContainer').innerHTML = html + `
+  <button class="mob-toggle" id="mobToggle" aria-label="Menu" onclick="toggleSidebar()">
+    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="20" height="20">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <div class="mob-overlay" id="mobOverlay" onclick="closeSidebar()"></div>`;
   const saved = localStorage.getItem('crm_theme') || 'white';
   document.querySelectorAll('.theme-dot').forEach(d => {
     d.classList.toggle('active', d.dataset.theme === saved);
@@ -260,4 +266,18 @@ function playAndLogout() {
 
     this.onclick = () => { audio.pause(); _logoutAudio = null; AUTH.logout(); };
   };
+}
+
+function toggleSidebar() {
+  const s = document.getElementById('appSidebar');
+  const o = document.getElementById('mobOverlay');
+  const open = s.classList.toggle('mob-open');
+  o.classList.toggle('mob-open', open);
+}
+
+function closeSidebar() {
+  const s = document.getElementById('appSidebar');
+  const o = document.getElementById('mobOverlay');
+  if (s) s.classList.remove('mob-open');
+  if (o) o.classList.remove('mob-open');
 }

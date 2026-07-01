@@ -118,6 +118,27 @@
 /* ---- cat filter pills ---- */
 .cat-pill{padding:4px 10px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--text-secondary);transition:all .15s;white-space:nowrap}
 .cat-pill.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* ---- layout classes ---- */
+.fiados-ph{padding:28px 32px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.fiados-stats{margin:0 32px 20px}
+.fiados-section{padding:0 32px}
+
+/* ---- responsive ---- */
+@media(max-width:768px){
+  .fiados-ph{padding:68px 16px 0;margin-bottom:16px}
+  .fiados-stats{margin:0 16px 16px;grid-template-columns:1fr 1fr !important}
+  .fiados-section{padding:0 16px}
+  #listContainer{padding-bottom:20px !important}
+  .frow-2{grid-template-columns:1fr}
+  .mo-box{max-width:calc(100vw - 24px) !important}
+  .mo{padding:12px}
+}
+@media(max-width:480px){
+  .fiados-stats{grid-template-columns:1fr !important}
+  .fiados-ph h1{font-size:18px}
+  .ftabs{flex-wrap:wrap}
+}
 </style>
 </head>
 <body>
@@ -125,7 +146,7 @@
 <main class="main">
 
   <!-- Header -->
-  <div style="padding:28px 32px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px">
+  <div class="fiados-ph">
     <div>
       <h1 style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px">Fiados</h1>
       <p style="font-size:13px;color:var(--text-secondary)">Clientes que estão devendo no bar</p>
@@ -137,10 +158,10 @@
   </div>
 
   <!-- Stats -->
-  <div class="stats-grid" id="statsRow" style="margin:0 32px 20px;grid-template-columns:repeat(3,1fr)"></div>
+  <div class="stats-grid fiados-stats" id="statsRow" style="grid-template-columns:repeat(3,1fr)"></div>
 
   <!-- Filter bar -->
-  <div style="padding:0 32px">
+  <div class="fiados-section">
     <div class="card" style="padding:13px 18px;margin-bottom:16px">
       <div class="filter-bar">
         <input type="search" id="searchInput" placeholder="Buscar por nome..." oninput="renderList()">
@@ -154,7 +175,7 @@
   </div>
 
   <!-- Cards -->
-  <div id="listContainer" style="padding:0 32px 32px"></div>
+  <div id="listContainer" class="fiados-section" style="padding-bottom:32px"></div>
 
 </main>
 

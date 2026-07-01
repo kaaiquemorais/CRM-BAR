@@ -125,36 +125,36 @@
 <main class="main">
 
   <!-- Header -->
-  <div class="page-header">
+  <div style="padding:28px 32px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px">
     <div>
-      <h1 class="page-title">Fiados</h1>
-      <p class="page-subtitle">Clientes que estão devendo no bar</p>
+      <h1 style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px">Fiados</h1>
+      <p style="font-size:13px;color:var(--text-secondary)">Clientes que estão devendo no bar</p>
     </div>
-    <div class="topbar-actions">
-      <button class="btn-new" onclick="openNewPerson()">
-        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Novo Devedor
-      </button>
-    </div>
+    <button class="btn-new" onclick="openNewPerson()">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Novo Devedor
+    </button>
   </div>
 
   <!-- Stats -->
-  <div class="stats-grid" id="statsRow" style="margin-bottom:20px;grid-template-columns:repeat(3,1fr)"></div>
+  <div class="stats-grid" id="statsRow" style="margin:0 32px 20px;grid-template-columns:repeat(3,1fr)"></div>
 
   <!-- Filter bar -->
-  <div class="card" style="padding:13px 18px;margin-bottom:16px">
-    <div class="filter-bar">
-      <input type="search" id="searchInput" placeholder="Buscar por nome..." oninput="renderList()">
-      <div class="ftabs">
-        <button class="ftab active" onclick="setFilter('abertos',this)">Em aberto</button>
-        <button class="ftab" onclick="setFilter('todos',this)">Todos</button>
-        <button class="ftab" onclick="setFilter('quitados',this)">Quitados</button>
+  <div style="padding:0 32px">
+    <div class="card" style="padding:13px 18px;margin-bottom:16px">
+      <div class="filter-bar">
+        <input type="search" id="searchInput" placeholder="Buscar por nome..." oninput="renderList()">
+        <div class="ftabs">
+          <button class="ftab active" onclick="setFilter('abertos',this)">Em aberto</button>
+          <button class="ftab" onclick="setFilter('todos',this)">Todos</button>
+          <button class="ftab" onclick="setFilter('quitados',this)">Quitados</button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Cards -->
-  <div id="listContainer"></div>
+  <div id="listContainer" style="padding:0 32px 32px"></div>
 
 </main>
 

@@ -177,7 +177,22 @@ function _gerarBackupExcel() {
     ]);
     XLSX.utils.book_append_sheet(wb, wsProd, 'Produtos Vendidos');
 
-    XLSX.writeFile(wb, `Vendas_GodoySouza_${dStr}.xlsx`);
+    // ── Aba 4: Estoque atual ─────────────────────────────────
+    const produtos = JSON.parse(localStorage.getItem('crm_products') || '[]');
+    const estoqueRows = produtos
+      .slice()
+      .sort((a, b) => (a.category||'').localeCompare(b.category||'') || (a.name||'').localeCompare(b.name||''))
+      .map(p => {
+        const status = p.stock <= 0 ? 'Zerado' : p.stock <= p.minStock ? 'Baixo' : 'OK';
+        return [p.name, p.category||'', p.stock, p.minStock, parseFloat(p.price||0).toFixed(2), status];
+      });
+    const wsEstoque = XLSX.utils.aoa_to_sheet([
+      ['Produto', 'Categoria', 'Estoque Atual', 'Estoque Mínimo', 'Preço (R$)', 'Status'],
+      ...(estoqueRows.length ? estoqueRows : [['Nenhum produto cadastrado', '', 0, 0, '0.00', '']]),
+    ]);
+    XLSX.utils.book_append_sheet(wb, wsEstoque, 'Estoque');
+
+    XLSX.writeFile(wb, `Relatorio_GodoySouza_${dStr}.xlsx`);
     return true;
   } catch(e) {
     console.error('Backup error:', e);

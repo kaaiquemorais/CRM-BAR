@@ -1,0 +1,20 @@
+{
+  "name": "Bar e Mercearia Godoy e Souza",
+  "short_name": "Bar GS",
+  "description": "CRM do Bar e Mercearia Godoy e Souza",
+  "start_url": "/login.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#6366f1",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
